@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<link rel="icon" type="image/png" href="airesIcon.png">
+<title>Markdown 渲染测试 — AIRES PRIVATE</title>
+<style>
+/* ========== RESET ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  -webkit-tap-highlight-color: transparent;
+  font-size: 16px;
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+body {
+  background: #141414;
+  color: #c4c2c2;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.7;
+  padding: 0;
+}
+
+/* ========== LOADING SCREEN ========== */
+#loader {
+  position: fixed; inset: 0; z-index: 99999;
+  background: #2a2a2a;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+#loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader-logo { text-align: center; }
+.loader-icon { width: 64px; height: 64px; margin: 0 auto 1.5rem; opacity: 0.85; }
+.loader-icon img { width: 100%; height: 100%; object-fit: contain; }
+.loader-logo .zh {
+  font-size: 1.6rem; font-weight: 700; letter-spacing: 0.25em;
+  color: #c4c2c2; line-height: 1.2;
+}
+.loader-logo .en {
+  font-size: 0.5rem; letter-spacing: 0.5em; color: #666;
+  margin-top: 0.5rem; text-transform: uppercase;
+}
+.loader-logo .line {
+  width: 4rem; height: 1px; background: #555; margin: 0.8rem auto;
+}
+.loader-track {
+  position: absolute; bottom: 4.5rem; left: 50%;
+  transform: translateX(-50%); width: 55%; max-width: 520px;
+}
+.loader-bar { width: 100%; height: 3px; background: #444; }
+.loader-fill { height: 100%; background: #18d1ff; width: 0%; transition: width 0.05s linear; }
+.loader-info { display: flex; justify-content: space-between; margin-top: 0.6rem; font-size: 0.55rem; letter-spacing: 0.08em; color: #777; }
+.loader-info .cyan { color: #18d1ff; }
+.loader-copy {
+  position: absolute; bottom: 1.5rem; left: 2rem;
+  font-size: 0.55rem; letter-spacing: 0.12em; color: #555;
+}
+
+/* ========== TOP NAVIGATION ========== */
+#nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 3rem; height: 60px;
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+#nav.scrolled { background: rgba(20,20,20,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.04); }
+.nav-left { display: flex; align-items: center; gap: 0.5rem; }
+.nav-brand-icon { width: 24px; height: 24px; flex-shrink: 0; }
+.nav-brand-icon img { width: 100%; height: 100%; object-fit: contain; }
+.nav-brand { text-decoration: none; display: flex; align-items: center; }
+.nav-brand-text { font-size: 1rem; font-weight: 700; letter-spacing: 0.2em; color: #fff; }
+.nav-right { display: flex; align-items: center; gap: 1.5rem; }
+.nav-link {
+  font-size: 0.55rem; letter-spacing: 0.12em; color: #888;
+  text-decoration: none; text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+.nav-link:hover { color: #18d1ff; }
+.nav-link.back { color: #18d1ff; border: 1px solid rgba(24,209,255,0.25); padding: 0.3rem 0.8rem; }
+.nav-link.back:hover { background: rgba(24,209,255,0.1); }
+
+/* ========== MAIN CONTENT ========== */
+#main {
+  max-width: 900px; margin: 0 auto; padding: 100px 2rem 4rem;
+}
+
+/* ========== TOOLBAR ========== */
+.toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap;
+}
+.toolbar-left { display: flex; gap: 0.5rem; }
+.tool-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(255,255,255,0.1); color: #888;
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+  text-decoration: none; cursor: pointer;
+  background: transparent; transition: all 0.3s ease;
+  font-family: inherit;
+}
+.tool-btn:hover { border-color: #18d1ff; color: #18d1ff; background: rgba(24,209,255,0.04); }
+.tool-btn.active { border-color: #18d1ff; color: #18d1ff; background: rgba(24,209,255,0.06); }
+.copy-success {
+  position: fixed; top: 80px; right: 2rem; z-index: 999;
+  padding: 0.6rem 1.2rem; background: rgba(24,209,255,0.15);
+  border: 1px solid #18d1ff; color: #18d1ff;
+  font-size: 0.6rem; letter-spacing: 0.1em;
+  opacity: 0; transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+.copy-success.show { opacity: 1; transform: translateY(0); }
+
+/* ========== RENDERER ========== */
+#render {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  line-height: 1.8;
+  max-width: 780px;
+}
+#render h1 { font-size: 1.8rem; font-weight: 800; color: #fff; letter-spacing: 0.08em; margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+#render h2 { font-size: 1.4rem; font-weight: 700; color: #ddd; letter-spacing: 0.06em; margin: 1.8rem 0 0.8rem; }
+#render h3 { font-size: 1.1rem; font-weight: 600; color: #ccc; margin: 1.5rem 0 0.6rem; }
+#render h4 { font-size: 0.95rem; font-weight: 600; color: #aaa; margin: 1.2rem 0 0.5rem; }
+#render h5, #render h6 { font-size: 0.85rem; font-weight: 600; color: #999; margin: 1rem 0 0.4rem; }
+#render p { margin: 0.6rem 0; color: #bfbfbf; }
+#render strong { color: #fff; }
+#render em { color: #aaa; }
+#render del { color: #666; }
+#render code {
+  background: rgba(24,209,255,0.08); color: #18d1ff;
+  padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.85em;
+  font-family: 'Courier New', monospace;
+}
+#render pre {
+  background: #1e1e1e; border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 4px; padding: 1rem 1.2rem; overflow-x: auto;
+  margin: 0.8rem 0;
+}
+#render pre code {
+  background: none; color: #c4c2c2; padding: 0; font-size: 0.8rem; line-height: 1.6;
+}
+#render blockquote {
+  border-left: 3px solid #18d1ff; padding: 0.5rem 1rem;
+  margin: 0.8rem 0; background: rgba(24,209,255,0.03); color: #999;
+}
+#render blockquote p { margin: 0.3rem 0; }
+#render ul, #render ol { margin: 0.6rem 0; padding-left: 1.5rem; }
+#render li { margin: 0.3rem 0; color: #bfbfbf; }
+#render li::marker { color: #666; }
+#render table {
+  width: 100%; border-collapse: collapse; margin: 0.8rem 0;
+  font-size: 0.85rem;
+}
+#render th {
+  background: rgba(24,209,255,0.06); color: #18d1ff;
+  padding: 0.6rem 1rem; text-align: left;
+  font-weight: 600; letter-spacing: 0.06em;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+#render td {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+#render tr:hover td { background: rgba(255,255,255,0.02); }
+#render a { color: #18d1ff; text-decoration: none; }
+#render a:hover { text-decoration: underline; }
+#render hr {
+  border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 1.5rem 0;
+}
+#render img {
+  max-width: 100%; border-radius: 4px; border: 1px solid rgba(255,255,255,0.06);
+}
+/* Footnotes */
+.fn-ref { font-size: 0.75em; }
+.fn-ref a { color: #18d1ff; text-decoration: none; }
+.fn-ref a:hover { text-decoration: underline; }
+.footnotes { margin-top: 2rem; }
+.footnotes h2 { font-size: 1rem; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.5rem; }
+.footnotes ol { padding-left: 1.5rem; font-size: 0.8rem; color: #999; }
+.footnotes li { margin: 0.4rem 0; }
+.fn-back { color: #18d1ff; text-decoration: none; margin-left: 0.3rem; }
+.fn-back:hover { text-decoration: underline; }
+/* Math formulas */
+.math-block {
+  background: #1a1a1a; border: 1px solid rgba(24,209,255,0.1);
+  border-left: 3px solid #18d1ff; border-radius: 4px;
+  padding: 1.2rem 1.5rem; margin: 1rem 0; text-align: center;
+  font-family: 'Courier New', 'Times New Roman', serif;
+  font-size: 0.95rem; color: #18d1ff; letter-spacing: 0.04em;
+  overflow-x: auto;
+}
+.math-inline {
+  font-family: 'Courier New', 'Times New Roman', serif;
+  font-size: 0.95em; color: #18d1ff;
+  background: rgba(24,209,255,0.06); padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+}
+
+/* ========== RAW VIEW ========== */
+#raw {
+  display: none;
+  background: #1a1a1a; border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 4px; padding: 1.5rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem; line-height: 1.7; color: #c4c2c2;
+  white-space: pre-wrap; overflow-x: auto;
+  max-width: 780px;
+}
+
+/* ========== FOOTER ========== */
+#footer {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 1.5rem 2rem; max-width: 900px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 0.55rem; letter-spacing: 0.08em; color: #555;
+}
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { color: #555; text-decoration: none; transition: color 0.3s ease; }
+.footer-links a:hover { color: #18d1ff; }
+
+@media (max-width: 768px) {
+  #nav { padding: 0 1.5rem; }
+  #main { padding: 80px 1rem 3rem; }
+  #render pre { padding: 0.8rem; }
+  #render table { font-size: 0.75rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== LOADING SCREEN ========== -->
+<div id="loader">
+  <div class="loader-logo">
+    <div class="loader-icon"><img src="airesIcon.png" alt="AIRES"></div>
+    <div class="zh">MARKDOWN 渲染测试</div>
+    <div class="en">FULL SYNTAX SHOWCASE</div>
+    <div class="line"></div>
+  </div>
+  <div class="loader-track">
+    <div class="loader-bar"><div class="loader-fill" id="loaderFill"></div></div>
+    <div class="loader-info">
+      <span class="cyan">PARSING SYNTAX TREE</span>
+      <span id="loaderPct">0%</span>
+    </div>
+  </div>
+  <div class="loader-copy">&copy; 2026 AIRES PRIVATE</div>
+</div>
+
+<!-- ========== TOP NAVIGATION ========== -->
+<nav id="nav">
+  <div class="nav-left">
+    <a href="index.html" class="nav-brand"><span class="nav-brand-icon"><img src="airesIcon.png" alt="AIRES"></span></a>
+    <span class="nav-brand-text">MARKDOWN TEST</span>
+  </div>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link back">← BACK</a>
+  </div>
+</nav>
+
+<!-- ========== MAIN CONTENT ========== -->
+<div id="main">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="tool-btn active" id="btnRender" onclick="showRender()">RENDERED</button>
+      <button class="tool-btn" id="btnRaw" onclick="showRaw()">RAW SOURCE</button>
+    </div>
+    <button class="tool-btn" onclick="copyMarkdown()">COPY</button>
+  </div>
+  <div id="render"></div>
+  <pre id="raw"></pre>
+</div>
+
+<div class="copy-success" id="copyMsg">COPIED TO CLIPBOARD</div>
+
+<!-- ========== FOOTER ========== -->
+<footer id="footer">
+  <span>&copy; 2026 AIRES PRIVATE WEB SITE</span>
+  <div class="footer-links">
+    <a href="index.html">HOME</a>
+    <a href="md-test.html">MARKDOWN TEST</a>
+  </div>
+</footer>
+
+<script>
+/* ========== LOADER ========== */
+(function(){
+  var bar = document.getElementById('loaderFill');
+  var txt = document.getElementById('loaderPct');
+  var scr = document.getElementById('loader');
+  var p = 0;
+  var t = setInterval(function(){
+    p += Math.random() * 7 + 3;
+    if (p >= 100) { p = 100; clearInterval(t); }
+    bar.style.width = p + '%';
+    txt.textContent = Math.floor(p) + '%';
+    if (p === 100) { setTimeout(function(){ scr.classList.add('done'); }, 300); }
+  }, 50);
+})();
+
+/* ========== SCROLL NAV BG ========== */
+var nav = document.getElementById('nav');
+window.addEventListener('scroll', function(){
+  nav.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+/* ========== MARKDOWN SOURCE ========== */
+var mdSource = [
+'# Markdown 语法全面测试',
+'',
+'本文档覆盖 Markdown 全部常用语法，用于测试渲染引擎的完整性。',
+'',
+'---',
+'',
+'## 1. 标题层级 (Headings)',
+'',
+'# H1 — 一级标题',
+'## H2 — 二级标题',
+'### H3 — 三级标题',
+'#### H4 — 四级标题',
+'##### H5 — 五级标题',
+'###### H6 — 六级标题',
+'',
+'---',
+'',
+'## 2. 文本样式 (Inline Formatting)',
+'',
+'这是 **粗体文字 (Bold)** ，使用双星号。',
+'',
+'这是 *斜体文字 (Italic)* ，使用单星号。',
+'',
+'这是 ***粗斜体文字 (Bold + Italic)*** ，使用三星号。',
+'',
+'这是 `内联代码 (Inline Code)` ，使用反引号。',
+'',
+'这是 ~~删除线文字 (Strikethrough)~~ ，使用双波浪线。',
+'',
+'这是 <u>下划线 (Underline)</u> ，使用 HTML 标签。',
+'',
+'上标示例: X<sup>2</sup> + Y<sup>3</sup> = Z<sup>n</sup>',
+'',
+'下标示例: H<sub>2</sub>O 和 C<sub>8</sub>H<sub>10</sub>N<sub>4</sub>O<sub>2</sub>',
+'',
+'高亮标记: <mark>这段文字被高亮</mark>',
+'',
+'---',
+'',
+'## 3. 引用块 (Blockquotes)',
+'',
+'> 这是一段引用文字。Markdown 使用 `>` 符号创建引用块。',
+'> ',
+'> 可以包含 **格式化** 和 `代码`。',
+'',
+'> ##### 嵌套引用',
+'> > 这是嵌套的二级引用。',
+'> > > 这是三级嵌套引用，最深可达多级。',
+'> > ',
+'> > 回到二级。',
+'>',
+'> 回到一级引用。',
+'',
+'---',
+'',
+'## 4. 列表 (Lists)',
+'',
+'### 无序列表',
+'',
+'- 项目 Alpha：基础功能模块',
+'- 项目 Beta：高级分析引擎',
+'  - 子项目 Beta-1：数据采集层',
+'  - 子项目 Beta-2：流式处理管线',
+'- 项目 Gamma：可视化面板',
+'',
+'### 有序列表',
+'',
+'1. 初始化环境配置',
+'2. 安装必要依赖',
+'   1. Node.js v18+',
+'   2. Python 3.11+',
+'   3. Docker Engine',
+'3. 启动开发服务器',
+'4. 运行测试套件',
+'',
+'### 任务列表',
+'',
+'- [x] 完成核心功能开发',
+'- [x] 编写单元测试',
+'- [ ] 部署到生产环境',
+'- [ ] 编写用户文档',
+'',
+'---',
+'',
+'## 5. 代码块 (Code Blocks)',
+'',
+'### JavaScript',
+'',
+'```javascript',
+'// 快速排序算法',
+'function quickSort(arr) {',
+'  if (arr.length <= 1) return arr;',
+'  const pivot = arr[Math.floor(arr.length / 2)];',
+'  const left  = arr.filter(x => x < pivot);',
+'  const mid   = arr.filter(x => x === pivot);',
+'  const right = arr.filter(x => x > pivot);',
+'  return [...quickSort(left), ...mid, ...quickSort(right)];',
+'}',
+'',
+'console.log(quickSort([3, 6, 8, 10, 1, 2, 1]));',
+'// Output: [1, 1, 2, 3, 6, 8, 10]',
+'```',
+'',
+'### Python',
+'',
+'```python',
+'import asyncio',
+'from typing import List, Dict',
+'',
+'async def fetch_data(url: str) -> Dict:',
+'    """异步获取远程数据"""',
+'    async with aiohttp.ClientSession() as session:',
+'        async with session.get(url) as resp:',
+'            return await resp.json()',
+'',
+'class DataPipeline:',
+'    def __init__(self, sources: List[str]):',
+'        self.sources = sources',
+'        self.cache = {}',
+'',
+'    async def run(self) -> None:',
+'        tasks = [fetch_data(s) for s in self.sources]',
+'        results = await asyncio.gather(*tasks)',
+'        for src, data in zip(self.sources, results):',
+'            self.cache[src] = data',
+'```',
+'',
+'### Shell',
+'',
+'```bash',
+'#!/bin/bash',
+'# 批量重命名文件',
+'count=0',
+'for file in *.jpg; do',
+'  mv "$file" "img_$(printf "%04d" $count).jpg"',
+'  ((count++))',
+'done',
+'echo "Renamed $count files."',
+'```',
+'',
+'---',
+'',
+'## 6. 表格 (Tables)',
+'',
+'| 职业 | 代号 | 星级 | 部署费用 | 特性 |',
+'|------|------|------|----------|------|',
+'| 先锋 | 风笛 | ★★★★★★ | 9 | 击杀回复部署费用 |',
+'| 近卫 | 史尔特尔 | ★★★★★★ | 12 | 法术伤害 + 生命流失 |',
+'| 狙击 | 能天使 | ★★★★★★ | 14 | 高速单体物理攻击 |',
+'| 术师 | 艾雅法拉 | ★★★★★★ | 21 | 群体法术伤害 |',
+'| 医疗 | 夜莺 | ★★★★★★ | 16 | 范围治疗 + 法术闪避 |',
+'',
+'### 对齐方式',
+'',
+'| 左对齐 | 居中 | 右对齐 |',
+'|:-------|:----:|-------:|',
+'| Alpha  | Beta | Gamma |',
+'| Delta  | Epsilon | Zeta |',
+'',
+'---',
+'',
+'## 7. 链接与图片 (Links & Images)',
+'',
+'[这是一个外部链接 — GitHub](https://github.com)',
+'',
+'[这是一个带标题的链接](https://www.markdownguide.org "Markdown Guide")',
+'',
+'自动链接: <https://www.example.com>',
+'',
+'引用式链接: [Google][1] 和 [Bing][2]',
+'',
+'![Bing 搜索图标](https://www.bing.com/favicon.ico)',
+'',
+'图片示例：Bing 搜索引擎的 favicon 图标。',
+'',
+'[1]: https://www.google.com "Google Search"',
+'[2]: https://www.bing.com "Bing Search"',
+'',
+'---',
+'',
+'## 8. 水平分割线 (Horizontal Rules)',
+'',
+'三段文字由不同样式的分割线隔开：',
+'',
+'***',
+'',
+'星号分割线',
+'',
+'---',
+'',
+'短横线分割线',
+'',
+'___',
+'',
+'下划线分割线',
+'',
+'---',
+'',
+'## 9. 转义字符 (Escaping)',
+'',
+'特殊字符需要反斜杠转义:',
+'',
+'`\\` `\\` `\\*` `\\_` `\\[` `\\]` `\\{` `\\}` `\\(` `\\)` `\\#` `\\+` `\\-` `\\.` `\\!`',
+'',
+'示例: 这不是 \\*斜体\\* ，价格 \\$99.99 ，版本 1\\.0\\.0',
+'',
+'---',
+'',
+'## 10. HTML 内联元素',
+'',
+'<details>',
+'<summary>点击展开 — 折叠内容区域</summary>',
+'',
+'这是折叠区域的内容。支持嵌套 Markdown：',
+'',
+'- 项目 A',
+'- 项目 B',
+'- 项目 C',
+'',
+'</details>',
+'',
+'<kbd>Ctrl</kbd> + <kbd>C</kbd> 复制 &nbsp;&nbsp; <kbd>Ctrl</kbd> + <kbd>V</kbd> 粘贴',
+'',
+'---',
+'',
+'## 11. 脚注 (Footnotes)',
+'',
+'这是一段包含脚注的文本[^1]。',
+'',
+'第二个脚注示例在这里[^note]。',
+'',
+'[^1]: 这是第一个脚注的详细说明，位于文档底部。',
+'[^note]: 脚注可以包含 `代码`、**粗体** 等内联格式。',
+'',
+'---',
+'',
+'## 12. Emoji & 特殊字符',
+'',
+':rocket: 部署成功 &nbsp; :white_check_mark: 测试通过 &nbsp; :bug: Bug 已修复',
+'',
+'Unicode 符号: ★ ☆ ♠ ♣ ♥ ♦ ◆ ◇ ■ □ ● ○ ▲ △ ▼ ▽',
+'',
+'---',
+'',
+'## 13. 数学公式 (Math)',
+'',
+'行内公式: $E = mc^2$',
+'',
+'块级公式:',
+'',
+'$$',
+'\\sum_{n=1}^{\\infty} \\frac{1}{n^2} = \\frac{\\pi^2}{6}',
+'$$',
+'',
+'$$',
+'\\int_{a}^{b} f(x)\\,dx = F(b) - F(a)',
+'$$',
+'',
+'---',
+'',
+'## 14. 缩进与空白',
+'',
+'&emsp;&emsp;这是两个全角空格缩进（使用 `&emsp;`）。',
+'',
+'两个连续换行产生段落间距。',
+'',
+'这是第一行  ',
+'第二行（上一行末尾有两个空格，应产生换行而非段落间距）。',
+'',
+'---',
+'',
+'> **Markdown 设计哲学**',
+'> ',
+'> *"The overriding design goal for Markdown\'\'s formatting syntax is to make it as readable as possible."*',
+'> ',
+'> — John Gruber',
+'',
+'---',
+'',
+'*文档生成于 2026 年，用于 AIRES PRIVATE WEB SITE Markdown 渲染引擎验证。*'
+].join('\n');
+
+/* ========== SIMPLE MARKDOWN → HTML RENDERER ========== */
+function renderMarkdown(src) {
+  var html = src;
+
+  // Footnotes — collect [^id]: text definitions, then replace [^id] refs
+  var footnotes = {};
+  html = html.replace(/^\[\^(\w+)\]: (.+)$/gm, function(m, id, text){
+    footnotes[id] = text;
+    return '';
+  });
+  // Replace inline footnote references
+  html = html.replace(/\[\^(\w+)\]/g, function(m, id){
+    return '<sup class="fn-ref" id="fnref:' + id + '"><a href="#fn:' + id + '">[' + id + ']</a></sup>';
+  });
+
+  // Math — block math $$...$$ and inline math $...$ (before code/inline processing)
+  html = html.replace(/\$\$\n([\s\S]*?)\n\$\$/g, function(m, formula){
+    return '<div class="math-block">' + escapeHtml(formula.trim()) + '</div>';
+  });
+  html = html.replace(/\$(.+?)\$/g, function(m, formula){
+    return '<span class="math-inline">' + escapeHtml(formula) + '</span>';
+  });
+
+  // Fenced code blocks (must be before inline code)
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(m, lang, code){
+    return '<pre><code>' + escapeHtml(code.trim()) + '</code></pre>';
+  });
+  // Inline code
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Headings
+  html = html.replace(/^###### (.+)$/gm, '<h6>$1</h6>');
+  html = html.replace(/^##### (.+)$/gm, '<h5>$1</h5>');
+  html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  // Horizontal rules
+  html = html.replace(/^(\*{3,}|-{3,}|_{3,})$/gm, '<hr>');
+  // Bold + Italic
+  html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  // Bold
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Italic
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  // Strikethrough
+  html = html.replace(/~~(.+?)~~/g, '<del>$1</del>');
+  // Images
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+  // Links
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  // Blockquotes — group consecutive > lines into single blockquote
+  var bqLines = html.split('\n');
+  var bqOut = [];
+  var bqBuf = [];
+  for (var i = 0; i < bqLines.length; i++) {
+    var match = bqLines[i].match(/^>(?: (.+))?$/);
+    if (match) {
+      bqBuf.push(match[1] || '');
+    } else {
+      if (bqBuf.length) {
+        bqOut.push('<blockquote>' + bqBuf.map(function(l){ return '<p>' + l + '</p>'; }).join('') + '</blockquote>');
+        bqBuf = [];
+      }
+      bqOut.push(bqLines[i]);
+    }
+  }
+  if (bqBuf.length) {
+    bqOut.push('<blockquote>' + bqBuf.map(function(l){ return '<p>' + l + '</p>'; }).join('') + '</blockquote>');
+  }
+  html = bqOut.join('\n');
+  // Ordered lists — group consecutive numbered lines into <ol>
+  var olLines = html.split('\n');
+  var olOut = []; var olBuf = [];
+  for (var i = 0; i < olLines.length; i++) {
+    var olMatch = olLines[i].match(/^\d+\. (.+)$/);
+    if (olMatch) {
+      olBuf.push('<li>' + olMatch[1] + '</li>');
+    } else {
+      if (olBuf.length) { olOut.push('<ol>' + olBuf.join('\n') + '</ol>'); olBuf = []; }
+      olOut.push(olLines[i]);
+    }
+  }
+  if (olBuf.length) olOut.push('<ol>' + olBuf.join('\n') + '</ol>');
+  html = olOut.join('\n');
+
+  // Unordered lists — group consecutive -/* lines into <ul>
+  var ulLines = html.split('\n');
+  var ulOut = []; var ulBuf = [];
+  for (var j = 0; j < ulLines.length; j++) {
+    var ulMatch = ulLines[j].match(/^[\-\*] (.+)$/);
+    if (ulMatch) {
+      ulBuf.push('<li>' + ulMatch[1] + '</li>');
+    } else {
+      if (ulBuf.length) { ulOut.push('<ul>' + ulBuf.join('\n') + '</ul>'); ulBuf = []; }
+      ulOut.push(ulLines[j]);
+    }
+  }
+  if (ulBuf.length) ulOut.push('<ul>' + ulBuf.join('\n') + '</ul>');
+  html = ulOut.join('\n');
+  // Checkbox lists
+  html = html.replace(/<li>\[x\] (.+?)<\/li>/g, '<li><input type="checkbox" checked disabled> $1</li>');
+  html = html.replace(/<li>\[ \] (.+?)<\/li>/g, '<li><input type="checkbox" disabled> $1</li>');
+  // Tables
+  html = html.replace(/^\|(.+)\|$/gm, function(m){
+    var cells = m.split('|').filter(function(c){ return c.trim() !== ''; });
+    return '<tr>' + cells.map(function(c){ return (/^[\s\-:]+$/.test(c.trim())) ? '' : '<td>' + c.trim() + '</td>'; }).join('') + '</tr>';
+  });
+  // Hard line break: two trailing spaces → <br>
+  html = html.replace(/  \n/g, '<br>\n');
+
+  // Wrap paragraphs
+  var lines = html.split('\n');
+  var out = [];
+  var inTable = false;
+  lines.forEach(function(line){
+    if (line.indexOf('<tr>') === 0) {
+      if (!inTable) { out.push('<table>'); inTable = true; }
+      if (line.indexOf('<td>') === -1) { inTable = false; out.push('</table>'); }
+      else { out.push(line); return; }
+    } else if (inTable) {
+      if (line.indexOf('<tr>') === -1) { out.push('</table>'); inTable = false; }
+    }
+    out.push(line);
+  });
+  if (inTable) out.push('</table>');
+  html = out.join('\n');
+  // Paragraphs for remaining text
+  html = html.replace(/^(?!<[a-z/])(.+)$/gm, function(m){
+    if (m.trim() === '') return '';
+    return '<p>' + m + '</p>';
+  });
+  // Append footnote definitions
+  var fnIds = Object.keys(footnotes);
+  if (fnIds.length) {
+    html += '<hr><div class="footnotes"><h2>脚注 Footnotes</h2><ol>';
+    fnIds.forEach(function(id){
+      html += '<li id="fn:' + id + '">' + footnotes[id] + ' <a href="#fnref:' + id + '" class="fn-back">↩</a></li>';
+    });
+    html += '</ol></div>';
+  }
+  return html;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* ========== DISPLAY ========== */
+document.getElementById('render').innerHTML = renderMarkdown(mdSource);
+document.getElementById('raw').textContent = mdSource;
+
+/* ========== TOGGLE VIEWS ========== */
+function showRender() {
+  document.getElementById('render').style.display = 'block';
+  document.getElementById('raw').style.display = 'none';
+  document.getElementById('btnRender').classList.add('active');
+  document.getElementById('btnRaw').classList.remove('active');
+}
+function showRaw() {
+  document.getElementById('render').style.display = 'none';
+  document.getElementById('raw').style.display = 'block';
+  document.getElementById('btnRaw').classList.add('active');
+  document.getElementById('btnRender').classList.remove('active');
+}
+
+/* ========== COPY ========== */
+function copyMarkdown() {
+  navigator.clipboard.writeText(mdSource).then(function(){
+    var msg = document.getElementById('copyMsg');
+    msg.classList.add('show');
+    setTimeout(function(){ msg.classList.remove('show'); }, 1800);
+  });
+}
+</script>
+
+</body>
+</html>
