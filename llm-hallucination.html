@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<link rel="icon" type="image/png" href="airesIcon.png">
+<title>LLM 幻觉现象 — AIRES PRIVATE</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-tap-highlight-color: transparent; font-size: 16px; color-scheme: dark; scroll-behavior: smooth; }
+body {
+  background: #141414; color: #c4c2c2;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  width: 100%; min-height: 100vh; overflow-x: hidden; line-height: 1.7;
+}
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: #141414; }
+::-webkit-scrollbar-thumb { background: #18d1ff; border-radius: 2px; }
+
+#loader { position: fixed; inset: 0; z-index: 99999; background: #2a2a2a; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease, visibility 0.8s ease; }
+#loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader-logo { text-align: center; }
+.loader-icon { width: 64px; height: 64px; margin: 0 auto 1.5rem; opacity: 0.85; }
+.loader-icon img { width: 100%; height: 100%; object-fit: contain; }
+.loader-logo .zh { font-size: 1.6rem; font-weight: 700; letter-spacing: 0.25em; color: #c4c2c2; line-height: 1.2; }
+.loader-logo .en { font-size: 0.5rem; letter-spacing: 0.5em; color: #666; margin-top: 0.5rem; text-transform: uppercase; }
+.loader-logo .line { width: 4rem; height: 1px; background: #555; margin: 0.8rem auto; }
+.loader-track { position: absolute; bottom: 4.5rem; left: 50%; transform: translateX(-50%); width: 55%; max-width: 520px; }
+.loader-bar { width: 100%; height: 3px; background: #444; }
+.loader-fill { height: 100%; background: #18d1ff; width: 0%; transition: width 0.05s linear; }
+.loader-info { display: flex; justify-content: space-between; margin-top: 0.6rem; font-size: 0.55rem; letter-spacing: 0.08em; color: #777; }
+.loader-info .cyan { color: #18d1ff; }
+.loader-copy { position: absolute; bottom: 1.5rem; left: 2rem; font-size: 0.55rem; letter-spacing: 0.12em; color: #555; }
+
+#nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 0 3rem; height: 60px; transition: background 0.4s ease; }
+#nav.scrolled { background: rgba(20,20,20,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.04); }
+.nav-left { display: flex; align-items: center; gap: 0.5rem; }
+.nav-brand-icon { width: 24px; height: 24px; }
+.nav-brand-icon img { width: 100%; height: 100%; object-fit: contain; }
+.nav-brand { text-decoration: none; display: flex; align-items: center; }
+.nav-brand-text { font-size: 1rem; font-weight: 700; letter-spacing: 0.2em; color: #fff; }
+.nav-right { display: flex; align-items: center; }
+.nav-back { font-size: 0.55rem; letter-spacing: 0.12em; color: #18d1ff; text-decoration: none; text-transform: uppercase; border: 1px solid rgba(24,209,255,0.25); padding: 0.3rem 0.8rem; transition: background 0.3s ease; }
+.nav-back:hover { background: rgba(24,209,255,0.1); }
+
+#main { max-width: 780px; margin: 0 auto; padding: 100px 2rem 4rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; line-height: 1.8; }
+#main h1 { font-size: 1.8rem; font-weight: 800; color: #fff; letter-spacing: 0.08em; margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+#main h2 { font-size: 1.3rem; font-weight: 700; color: #ddd; letter-spacing: 0.06em; margin: 1.8rem 0 0.8rem; }
+#main h3 { font-size: 1.05rem; font-weight: 600; color: #ccc; margin: 1.5rem 0 0.6rem; }
+#main p { margin: 0.6rem 0; color: #bfbfbf; }
+#main strong { color: #fff; }
+#main em { color: #aaa; }
+#main code { background: rgba(24,209,255,0.08); color: #18d1ff; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.85em; font-family: 'Courier New', monospace; }
+#main pre { background: #1e1e1e; border: 1px solid rgba(255,255,255,0.06); border-radius: 4px; padding: 1rem 1.2rem; overflow-x: auto; margin: 0.8rem 0; }
+#main pre code { background: none; color: #c4c2c2; padding: 0; font-size: 0.8rem; line-height: 1.6; }
+#main blockquote { border-left: 3px solid #18d1ff; padding: 0.5rem 1rem; margin: 0.8rem 0; background: rgba(24,209,255,0.03); color: #999; }
+#main blockquote p { margin: 0.3rem 0; }
+#main ul, #main ol { margin: 0.6rem 0; padding-left: 1.5rem; }
+#main li { margin: 0.3rem 0; color: #bfbfbf; }
+#main li::marker { color: #666; }
+#main a { color: #18d1ff; text-decoration: none; }
+#main a:hover { text-decoration: underline; }
+
+#footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 1.5rem 2rem; max-width: 780px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; font-size: 0.55rem; letter-spacing: 0.08em; color: #555; }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { color: #555; text-decoration: none; transition: color 0.3s ease; }
+.footer-links a:hover { color: #18d1ff; }
+
+@media (max-width: 768px) {
+  #nav { padding: 0 1.5rem; }
+  #main { padding: 80px 1rem 3rem; }
+}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-logo">
+    <div class="loader-icon"><img src="airesIcon.png" alt="AIRES"></div>
+    <div class="zh">LLM 幻觉</div>
+    <div class="en">HALLUCINATION</div>
+    <div class="line"></div>
+  </div>
+  <div class="loader-track">
+    <div class="loader-bar"><div class="loader-fill" id="loaderFill"></div></div>
+    <div class="loader-info">
+      <span class="cyan">LOADING DOCUMENT</span>
+      <span id="loaderPct">0%</span>
+    </div>
+  </div>
+  <div class="loader-copy">&copy; 2026 AIRES PRIVATE</div>
+</div>
+
+<nav id="nav">
+  <div class="nav-left">
+    <a href="index.html" class="nav-brand"><span class="nav-brand-icon"><img src="airesIcon.png" alt="AIRES"></span></a>
+    <span class="nav-brand-text">LLM HALLUCINATION</span>
+  </div>
+  <div class="nav-right">
+    <a href="index.html" class="nav-back">&larr; BACK</a>
+  </div>
+</nav>
+
+<div id="main">
+<h1>关于大语言模型中的"幻觉"现象——你可能不知道的事</h1>
+
+<h2>一、大语言模型的普及与完美假象</h2>
+<p>当前，通义千问、DeepSeek、豆包、ChatGPT、Gemini、Claude 等大语言模型（LLM）已广泛进入日常生活。无论老人还是儿童，都或多或少接触并使用了这些工具。"无所不能""比我聪明""不会就问""问AI啊"等评价，常常与这些模型相伴出现。人们很容易认为，它们是全知且完美的。</p>
+<p>然而，世上不存在完美的事物，大语言模型亦不例外。</p>
+
+<h2>二、幻觉的本质：模型的工作原理所决定</h2>
+<p>如前文所述，大语言模型的核心工作原理可概括为：一个不断预测下一个最可能词语的"预测器"，通过逐词拼接生成回复。然而，模型的训练数据存在时效性限制，其知识无法实时更新。面对训练数据中未曾涉及的问题，模型会如何应对？</p>
+<p>它通常不会直接拒绝回答或承认"不知道"，而是倾向于生成一个看似合理的答案。</p>
+
+<h3>案例解析</h3>
+<ul>
+<li><strong>用户提问</strong>："《百年孤独》的第一句话是什么？"</li>
+<li><strong>模型回答</strong>："多年以后，面对行刑队，奥雷里亚诺·布恩迪亚上校将会回想起父亲带他去见识冰块的那个下午。"</li>
+</ul>
+<p>这一回答完全正确，因为训练过程中确实包含了该文本。</p>
+<ul>
+<li><strong>用户继续提问</strong>："这句话在书里的第几页？"</li>
+<li><strong>第一次回答</strong>："第1页。"（刻板印象使然，但实际因版本不同可能在第3页、第5页或第9页。）</li>
+<li><strong>第二次追问</strong>："第2页。"</li>
+<li><strong>第三次追问</strong>："不同的出版社版本不同，一般为第1页或第2页。"</li>
+</ul>
+<p>由此可见，模型并未承认无知，而是逐步"圆"出一个看似合理的解释。这种现象即被称为<strong>幻觉</strong>（Hallucination）。如果用户对这一结果深信不疑，可能产生严重的后果。</p>
+
+<h2>三、幻觉的成因：RLHF 训练的副作用</h2>
+<p>大语言模型在训练过程中采用了一种重要方法——<strong>基于人类反馈的强化学习</strong>（RLHF，Reinforcement Learning from Human Feedback）。具体做法是：向模型提问，让其生成多个候选回答，再由人类评估者对每个回答进行打分，从而告诉模型"人类更喜欢这种回答，应避免另一种方向"。</p>
+<p>问题在于：RLHF 训练过程中，通常刻意避免模型生成"我不知道"之类的回答。久而久之，模型便学会了"即使不会也要编造答案"的策略——类似于应试教育中的"蒙题技巧"。</p>
+<p>如何编造？模型在大量训练后，形成了类似于人类"语感"的能力。它能够根据语言模式判断某个句子是否"听起来正确"，从而拼凑出结构完整、语法正确但内容可能虚假的回复。这也解释了为什么某些模型会生成"假文献""假编号"等内容。</p>
+
+<h2>四、幻觉的评价指标：SuperCLUE</h2>
+<p>国际通用的模型幻觉率评测排行榜为 <strong>SuperCLUE</strong>。其评分越高，说明模型生成虚假内容的概率越低。</p>
+<p>根据个人使用经验，推理模型（即具备"思考"能力的模型）在幻觉率方面往往高于非推理模型。例如，DeepSeek v3.2 版本的推理模型在推理过程中，经常自行构建一个"合理"的前提，并在此基础上推出逻辑严谨但实际错误的结论。</p>
+
+<h2>五、如何正确使用大语言模型</h2>
+<p>本文并非否定大语言模型的价值。模型无疑是强大的工具，但用户必须保持清醒的认知。对于重要信息，尤其是涉及事实、数据、引用等内容，建议进行独立验证，而非全盘依赖模型给出的回答。</p>
+
+<hr>
+<p><em>（说明：文中提及的案例及观点仅为个人经验总结，可能存在疏漏，欢迎指正。部分图片来源于互联网，侵权请联系删除。）</em></p>
+</div>
+
+<footer id="footer">
+  <span>&copy; 2026 AIRES PRIVATE WEB SITE</span>
+  <div class="footer-links">
+    <a href="index.html">HOME</a>
+    <a href="md-test.html">MARKDOWN TEST</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var bar = document.getElementById('loaderFill');
+  var txt = document.getElementById('loaderPct');
+  var scr = document.getElementById('loader');
+  var p = 0;
+  var t = setInterval(function(){
+    p += Math.random() * 7 + 3;
+    if (p >= 100) { p = 100; clearInterval(t); }
+    bar.style.width = p + '%';
+    txt.textContent = Math.floor(p) + '%';
+    if (p === 100) setTimeout(function(){ scr.classList.add('done'); }, 300);
+  }, 50);
+})();
+var nav = document.getElementById('nav');
+window.addEventListener('scroll', function(){ nav.classList.toggle('scrolled', window.scrollY > 50); });
+</script>
+</body>
+</html>
