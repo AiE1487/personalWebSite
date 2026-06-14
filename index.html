@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<link rel="icon" type="image/png" href="airesIcon.png">
+<title>AIRES PRIVATE WEB SITE WELCOME</title>
+<style>
+/* ========== RESET ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  -webkit-tap-highlight-color: transparent;
+  font-size: 16px;
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+body {
+  background: #141414;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: #141414; }
+::-webkit-scrollbar-thumb { background: #18d1ff; border-radius: 2px; }
+
+/* ========== LOADING SCREEN ========== */
+#loader {
+  position: fixed; inset: 0; z-index: 99999;
+  background: #2a2a2a;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+#loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader-logo { text-align: center; }
+.loader-icon { width: 64px; height: 64px; margin: 0 auto 1.5rem; opacity: 0.85; }
+.loader-icon img { width: 100%; height: 100%; object-fit: contain; }
+.loader-logo .zh {
+  font-size: 2.8rem; font-weight: 700; letter-spacing: 0.35em;
+  color: #c4c2c2; line-height: 1.2;
+}
+.loader-logo .en {
+  font-size: 0.55rem; letter-spacing: 0.5em; color: #666;
+  margin-top: 0.75rem; text-transform: uppercase;
+}
+.loader-logo .loader-small {
+  font-size: 0.55rem; letter-spacing: 0.35em; color: #666;
+  text-transform: uppercase;
+}
+.loader-logo .loader-main {
+  font-size: 2.0rem; font-weight: 700; letter-spacing: 0.25em;
+  color: #c4c2c2; line-height: 1.2; margin-top: 0.4rem;
+}
+.loader-hint {
+  text-align: center; font-size: 0.55rem; letter-spacing: 0.2em;
+  color: #18d1ff; margin-bottom: 0.5rem; text-transform: uppercase;
+}
+.loader-logo .line {
+  width: 4rem; height: 1px; background: #555; margin: 1rem auto;
+}
+.loader-track {
+  position: absolute; bottom: 4.5rem; left: 50%;
+  transform: translateX(-50%); width: 55%; max-width: 520px;
+}
+.loader-bar { width: 100%; height: 3px; background: #444; }
+.loader-fill { height: 100%; background: #18d1ff; width: 0%; transition: width 0.05s linear; }
+.loader-info { display: flex; justify-content: space-between; margin-top: 0.6rem; font-size: 0.6rem; letter-spacing: 0.08em; color: #777; }
+.loader-info .cyan { color: #18d1ff; }
+.loader-copy {
+  position: absolute; bottom: 1.5rem; left: 2rem;
+  font-size: 0.6rem; letter-spacing: 0.12em; color: #555;
+}
+
+/* ========== TOP NAVIGATION ========== */
+#nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 3rem; height: 72px;
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+#nav.scrolled { background: rgba(20,20,20,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.04); }
+.nav-left { display: flex; align-items: center; gap: 0.5rem; }
+.nav-brand-icon { width: 28px; height: 28px; flex-shrink: 0; }
+.nav-brand-icon img { width: 100%; height: 100%; object-fit: contain; }
+.nav-brand {
+  font-size: 1.1rem; font-weight: 700; letter-spacing: 0.25em; color: #fff;
+  text-decoration: none; display: flex; align-items: center;
+}
+.nav-brand-text { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.25em; color: #fff; }
+.nav-brand span { color: #18d1ff; }
+.nav-right { display: flex; align-items: center; gap: 2.5rem; }
+.nav-link {
+  font-size: 0.65rem; letter-spacing: 0.15em; color: #888;
+  text-decoration: none; text-transform: uppercase;
+  transition: color 0.3s ease; position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.nav-link .cn { font-size: 0.7rem; color: #aaa; }
+.nav-link .en { font-size: 0.5rem; color: #555; }
+.nav-link:hover, .nav-link.active { color: #18d1ff; }
+.nav-link:hover .cn, .nav-link.active .cn { color: #18d1ff; }
+.nav-link:hover .en, .nav-link.active .en { color: #18d1ff; }
+.nav-link::after {
+  content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%) scaleX(0);
+  width: 12px; height: 2px; background: #18d1ff;
+  transition: transform 0.3s ease;
+}
+.nav-link.active::after { transform: translateX(-50%) scaleX(1); }
+
+/* ========== HERO SECTION ========== */
+#hero {
+  position: relative; width: 100%; min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+/* Dot matrix */
+#hero::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+/* Vignette */
+#hero::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 40%, transparent, rgba(0,0,0,0.5));
+}
+.hero-ring {
+  position: absolute; width: 560px; height: 560px;
+  border: 1px solid rgba(24,209,255,0.08); border-radius: 50%;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+.hero-ring-inner {
+  position: absolute; width: 380px; height: 380px;
+  border: 1px solid rgba(24,209,255,0.04); border-radius: 50%;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+.hero-content { position: relative; z-index: 2; text-align: center; padding: 0 2rem; }
+.hero-icon { width: 80px; height: 80px; margin: 0 auto 2rem; opacity: 0.9; }
+.hero-icon img { width: 100%; height: 100%; object-fit: contain; }
+.hero-tag {
+  display: inline-block; font-size: 0.55rem; letter-spacing: 0.2em;
+  color: #18d1ff; border: 1px solid rgba(24,209,255,0.25);
+  padding: 0.35rem 1.2rem; margin-bottom: 2.5rem; text-transform: uppercase;
+}
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800;
+  letter-spacing: 0.18em; color: #fff; line-height: 1.25;
+}
+.hero-title .accent { color: #18d1ff; }
+.hero-welcome {
+  font-size: clamp(1rem, 2vw, 1.5rem); font-weight: 600;
+  letter-spacing: 0.35em; color: #888; margin-top: 0.75rem; text-transform: uppercase;
+}
+.hero-sub {
+  font-size: 0.6rem; letter-spacing: 0.3em; color: #666;
+  margin-top: 1rem; text-transform: uppercase;
+}
+.hero-rule {
+  width: 6rem; height: 1px;
+  background: linear-gradient(to right, transparent, #18d1ff, transparent);
+  margin: 2rem auto;
+}
+.hero-desc {
+  font-size: 0.85rem; color: #888; letter-spacing: 0.06em;
+  max-width: 520px; line-height: 1.8; text-align: center;
+  margin: 0 auto;
+}
+/* 标题下方大型图标 + 渐变遮罩 */
+.hero-emblem {
+  position: relative; width: 200px; height: 200px;
+  margin: 2.5rem auto 0;
+}
+.hero-emblem img {
+  width: 100%; height: 100%; object-fit: contain;
+  opacity: 0.8;
+}
+/* 渐变消失遮罩：圆心透明 → 边缘融入背景 #141414 */
+.hero-emblem::after {
+  content: ''; position: absolute; inset: -40px; pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 50%,
+    transparent 45%,
+    rgba(20,20,20,0.6) 75%,
+    #141414 100%
+  );
+}
+.hero-scroll {
+  position: absolute; bottom: 3rem; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  z-index: 2;
+}
+.hero-scroll span {
+  font-size: 0.5rem; letter-spacing: 0.2em; color: #555; text-transform: uppercase;
+}
+.hero-scroll .line {
+  width: 1px; height: 40px;
+  background: linear-gradient(to bottom, rgba(24,209,255,0.3), transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* ========== SECTIONS GENERAL ========== */
+.section { padding: 6rem 3rem; max-width: 1200px; margin: 0 auto; }
+.section-header { margin-bottom: 4rem; }
+.section-num {
+  font-family: 'Courier New', monospace;
+  font-size: 6rem; font-weight: 700; color: rgba(24,209,255,0.08);
+  line-height: 1; margin-bottom: -1.5rem;
+}
+.section-title {
+  font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 700;
+  letter-spacing: 0.1em; color: #fff; margin-bottom: 0.3rem;
+}
+.section-sub {
+  font-size: 0.55rem; letter-spacing: 0.2em; color: #666; text-transform: uppercase;
+}
+.section-divider {
+  width: 100%; height: 1px;
+  background: linear-gradient(to right, rgba(255,255,255,0.06), transparent);
+  margin-top: 1.5rem;
+}
+
+/* ========== LINK GRID ========== */
+.link-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.link-cell {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 3rem 1.5rem;
+  text-decoration: none; color: inherit;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+  transition: background 0.35s ease, border-color 0.35s ease;
+  position: relative;
+  cursor: pointer;
+}
+.link-cell:hover {
+  background: rgba(24,209,255,0.03);
+  border-color: rgba(24,209,255,0.25);
+  z-index: 1;
+}
+.link-icon {
+  font-size: 1.6rem; color: #555; margin-bottom: 1.2rem;
+  transition: color 0.35s ease;
+}
+.link-cell:hover .link-icon { color: #18d1ff; }
+.link-name {
+  font-size: 1rem; font-weight: 600; letter-spacing: 0.08em; color: #c4c2c2;
+  margin-bottom: 0.3rem; transition: color 0.35s ease;
+}
+.link-cell:hover .link-name { color: #fff; }
+.link-label {
+  font-size: 0.5rem; letter-spacing: 0.15em; color: #555;
+  text-transform: uppercase; transition: color 0.35s ease;
+}
+.link-cell:hover .link-label { color: #18d1ff; }
+.link-desc {
+  font-size: 0.7rem; color: #555; margin-top: 0.75rem;
+  line-height: 1.5; transition: color 0.35s ease;
+}
+.link-cell:hover .link-desc { color: #888; }
+
+/* ========== STATS ROW ========== */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; border: 1px solid rgba(255,255,255,0.06); }
+.stat-cell {
+  text-align: center; padding: 2.5rem 1rem;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.stat-num {
+  font-family: 'Courier New', monospace;
+  font-size: 2rem; font-weight: 700; color: #18d1ff; line-height: 1.2;
+}
+.stat-label {
+  font-size: 0.55rem; letter-spacing: 0.12em; color: #666;
+  text-transform: uppercase; margin-top: 0.5rem;
+}
+
+/* ========== CTA SECTION ========== */
+.cta-section {
+  text-align: center; padding: 6rem 3rem;
+  position: relative;
+}
+.cta-title {
+  font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700;
+  letter-spacing: 0.1em; color: #fff; margin-bottom: 0.5rem;
+}
+.cta-sub {
+  font-size: 0.55rem; letter-spacing: 0.2em; color: #666;
+  text-transform: uppercase; margin-bottom: 2.5rem;
+}
+.cta-btn {
+  display: inline-block; padding: 0.75rem 2.5rem;
+  border: 1px solid #18d1ff; color: #18d1ff;
+  font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+.cta-btn:hover { background: #18d1ff; color: #000; }
+
+/* ========== FOOTER ========== */
+#footer {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 2rem 3rem;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 0.6rem; letter-spacing: 0.08em; color: #555;
+}
+.footer-links { display: flex; gap: 2rem; }
+.footer-links a { color: #555; text-decoration: none; transition: color 0.3s ease; }
+.footer-links a:hover { color: #18d1ff; }
+
+/* ========== REVEAL ANIMATION ========== */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  #nav { padding: 0 1.5rem; }
+  .nav-right { gap: 1.5rem; }
+  .hero-ring, .hero-ring-inner { display: none; }
+  .link-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .section { padding: 4rem 1.5rem; }
+  #footer { flex-direction: column; gap: 1rem; text-align: center; }
+}
+@media (max-width: 480px) {
+  .link-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .nav-link .en { display: none; }
+  .hero-title { font-size: 1.6rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== LOADING SCREEN ========== -->
+<div id="loader">
+  <div class="loader-logo">
+    <div class="loader-icon"><img src="airesIcon.png" alt="AIRES"></div>
+    <div class="loader-small">ACCESSING UNIT</div>
+    <div class="loader-main">AIRES PRIVATE WEB SITE</div>
+    <div class="en">WELCOME</div>
+    <div class="line"></div>
+  </div>
+  <div class="loader-track">
+    <div class="loader-bar"><div class="loader-fill" id="loaderFill"></div></div>
+    <div class="loader-info">
+      <span class="cyan" id="loaderInfo">INITIALIZING</span>
+      <span id="loaderPct">0%</span>
+    </div>
+  </div>
+  <div class="loader-copy">&copy; 2026 AIRES PRIVATE</div>
+</div>
+
+<!-- ========== TOP NAVIGATION ========== -->
+<nav id="nav">
+  <div class="nav-left">
+    <a href="#" class="nav-brand"><span class="nav-brand-icon"><img src="airesIcon.png" alt="AIRES"></span></a>
+    <span class="nav-brand-text">AIRES</span>
+  </div>
+  <div class="nav-right">
+    <a href="#home" class="nav-link active">
+      <span class="cn">首页</span><span class="en">HOME</span>
+    </a>
+    <a href="#links" class="nav-link">
+      <span class="cn">链接</span><span class="en">LINKS</span>
+    </a>
+    <a href="#info" class="nav-link">
+      <span class="cn">信息</span><span class="en">INFO</span>
+    </a>
+    <a href="#contact" class="nav-link">
+      <span class="cn">联系</span><span class="en">CONTACT</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ========== HERO SECTION ========== -->
+<section id="home">
+  <div id="hero">
+    <div class="hero-ring"></div>
+    <div class="hero-ring-inner"></div>
+    <div class="hero-content">
+      <div class="hero-tag">PRIVATE WEB SITE</div>
+      <h1 class="hero-title">AIRES&nbsp;<span class="accent">PRIVATE</span>&nbsp;WEB&nbsp;SITE</h1>
+      <div class="hero-welcome">WELCOME</div>
+      <div class="hero-sub">EST. 2026 · PERSONAL HUB</div>
+      <div class="hero-rule"></div>
+      <p class="hero-desc">
+        私人网络站点索引，汇集项目文档、代码仓库与工具资源。<br>
+        点击下方链接，进入对应页面。
+      </p>
+    </div>
+    <div class="hero-scroll">
+      <span>SCROLL DOWN</span>
+      <div class="line"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECTION 01 — LINK BLOCKS ========== -->
+<section class="section reveal" id="links">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <div class="section-title">快捷链接</div>
+    <div class="section-sub">QUICK LINKS & NAVIGATION</div>
+    <div class="section-divider"></div>
+  </div>
+  <div class="link-grid">
+    <a href="#" class="link-cell">
+      <div class="link-icon">&#9632;</div>
+      <div class="link-name">项目文档</div>
+      <div class="link-label">PROJECTS</div>
+      <div class="link-desc">项目规划、技术文档与实现方案</div>
+    </a>
+    <a href="#" class="link-cell">
+      <div class="link-icon">&#9670;</div>
+      <div class="link-name">代码仓库</div>
+      <div class="link-label">REPOSITORY</div>
+      <div class="link-desc">源代码管理与版本控制</div>
+    </a>
+    <a href="#" class="link-cell">
+      <div class="link-icon">&#9679;</div>
+      <div class="link-name">工具集</div>
+      <div class="link-label">TOOLS</div>
+      <div class="link-desc">常用开发工具与实用脚本</div>
+    </a>
+    <a href="#" class="link-cell">
+      <div class="link-icon">&#9650;</div>
+      <div class="link-name">图库资源</div>
+      <div class="link-label">GALLERY</div>
+      <div class="link-desc">设计素材、截图与视觉资源</div>
+    </a>
+    <a href="#" class="link-cell">
+      <div class="link-icon">&#9636;</div>
+      <div class="link-name">文档归档</div>
+      <div class="link-label">ARCHIVE</div>
+      <div class="link-desc">历史文档、备份与参考资料</div>
+    </a>
+    <a href="#" class="link-cell">
+      <div class="link-icon">&#9654;</div>
+      <div class="link-name">实验区</div>
+      <div class="link-label">SANDBOX</div>
+      <div class="link-desc">测试页面、实验项目与原型</div>
+    </a>
+  </div>
+</section>
+
+<!-- ========== SECTION 02 — SITE INFO ========== -->
+<section class="section reveal" id="info">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <div class="section-title">站点信息</div>
+    <div class="section-sub">SITE INFORMATION & STATUS</div>
+    <div class="section-divider"></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-cell">
+      <div class="stat-num">6</div>
+      <div class="stat-label">LINK BLOCKS</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">24/7</div>
+      <div class="stat-label">AVAILABILITY</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">2026</div>
+      <div class="stat-label">ESTABLISHED</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">V2</div>
+      <div class="stat-label">VERSION</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== CTA SECTION ========== -->
+<section class="cta-section reveal" id="contact">
+  <div class="cta-title">BOOKMARK THIS PAGE</div>
+  <div class="cta-sub">ADD TO FAVORITES FOR QUICK ACCESS</div>
+  <a href="#home" class="cta-btn">BACK TO TOP</a>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer id="footer">
+  <span>&copy; 2026 AIRES PRIVATE WEB SITE. ALL RIGHTS RESERVED.</span>
+  <div class="footer-links">
+    <a href="#home">HOME</a>
+    <a href="#links">LINKS</a>
+    <a href="#info">INFO</a>
+    <a href="#contact">CONTACT</a>
+  </div>
+</footer>
+
+<script>
+/* ========== LOADER ========== */
+(function(){
+  var bar = document.getElementById('loaderFill');
+  var txt = document.getElementById('loaderPct');
+  var scr = document.getElementById('loader');
+  var info = document.getElementById('loaderInfo');
+  var p = 0;
+  var t = setInterval(function(){
+    p += Math.random() * 8 + 2;
+    if (p >= 100) { p = 100; clearInterval(t); }
+    bar.style.width = p + '%';
+    txt.textContent = Math.floor(p) + '%';
+    // 进度阶段提示语
+    if (p < 25)      { info.textContent = 'INITIALIZING / SENDING REQUEST'; }
+    else if (p < 50) { info.textContent = 'INITIALIZING / IDENTIFY DATA'; }
+    else if (p < 75) { info.textContent = 'INITIALIZING / LOAD IN'; }
+    else             { info.textContent = 'INITIALIZE / OK'; }
+    if (p === 100) {
+      setTimeout(function(){ scr.classList.add('done'); }, 300);
+    }
+  }, 60);
+})();
+
+/* ========== SCROLL NAV BG ========== */
+var nav = document.getElementById('nav');
+window.addEventListener('scroll', function(){
+  nav.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+/* ========== ACTIVE NAV LINK ========== */
+var links = document.querySelectorAll('.nav-link');
+var sections = [];
+links.forEach(function(l){
+  var id = l.getAttribute('href');
+  if (id && id !== '#') sections.push(document.querySelector(id));
+});
+function updateActive(){
+  var scrollPos = window.scrollY + window.innerHeight / 3;
+  var activeId = null;
+  sections.forEach(function(s, i){
+    if (s && s.offsetTop <= scrollPos) activeId = links[i].getAttribute('href');
+  });
+  links.forEach(function(l){
+    l.classList.toggle('active', l.getAttribute('href') === activeId);
+  });
+}
+window.addEventListener('scroll', updateActive);
+updateActive();
+
+/* ========== REVEAL ON SCROLL ========== */
+var observer = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(function(el){ observer.observe(el); });
+</script>
+
+</body>
+</html>
