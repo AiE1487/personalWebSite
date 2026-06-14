@@ -24,6 +24,8 @@ body {
   line-height: 1.7;
   padding: 0;
 }
+#page-content { opacity: 0; transition: opacity 0.5s ease; }
+#page-content.visible { opacity: 1; }
 
 /* ========== LOADING SCREEN ========== */
 #loader {
@@ -33,6 +35,8 @@ body {
   transition: opacity 0.8s ease, visibility 0.8s ease;
 }
 #loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+@keyframes slideUpIn { from { transform: translateY(100vh); } to { transform: translateY(0); } }
+#loader.from-index { animation: slideUpIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 .loader-logo { text-align: center; }
 .loader-icon { width: 64px; height: 64px; margin: 0 auto 1.5rem; opacity: 0.85; }
 .loader-icon img { width: 100%; height: 100%; object-fit: contain; }
@@ -251,6 +255,8 @@ body {
   <div class="loader-copy">&copy; 2026 AIRES PRIVATE</div>
 </div>
 
+<div id="page-content">
+
 <!-- ========== TOP NAVIGATION ========== -->
 <nav id="nav">
   <div class="nav-left">
@@ -289,16 +295,22 @@ body {
 <script>
 /* ========== LOADER ========== */
 (function(){
+  var scr = document.getElementById('loader');
+  if (sessionStorage.getItem('fromIndex')) {
+    sessionStorage.removeItem('fromIndex');
+    scr.classList.add('from-index');
+    setTimeout(function(){ scr.classList.add('done'); setTimeout(function(){ document.getElementById('page-content').classList.add('visible'); }, 800); }, 600);
+    return;
+  }
   var bar = document.getElementById('loaderFill');
   var txt = document.getElementById('loaderPct');
-  var scr = document.getElementById('loader');
   var p = 0;
   var t = setInterval(function(){
     p += Math.random() * 7 + 3;
     if (p >= 100) { p = 100; clearInterval(t); }
     bar.style.width = p + '%';
     txt.textContent = Math.floor(p) + '%';
-    if (p === 100) { setTimeout(function(){ scr.classList.add('done'); }, 300); }
+    if (p === 100) { setTimeout(function(){ scr.classList.add('done'); setTimeout(function(){ document.getElementById('page-content').classList.add('visible'); }, 800); }, 300); }
   }, 50);
 })();
 
@@ -766,6 +778,6 @@ function copyMarkdown() {
   });
 }
 </script>
-
+</div>
 </body>
 </html>
