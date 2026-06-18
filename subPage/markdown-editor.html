@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<link rel="icon" type="image/png" href="../img/airesIcon.png">
+<title>Markdown 编辑器 — AIRES PRIVATE</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-tap-highlight-color: transparent; font-size: 16px; color-scheme: dark; scroll-behavior: smooth; }
+body {
+  background: #141414; color: #c4c2c2;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  width: 100%; min-height: 100vh; overflow-x: hidden; line-height: 1.7;
+}
+#page-content { opacity: 0; transition: opacity 0.5s ease; }
+#page-content.visible { opacity: 1; }
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: #141414; }
+::-webkit-scrollbar-thumb { background: #18d1ff; border-radius: 2px; }
+
+#loader { position: fixed; inset: 0; z-index: 99999; background: #2a2a2a; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease, visibility 0.8s ease; }
+#loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+@keyframes slideUpIn { from { transform: translateY(100vh); } to { transform: translateY(0); } }
+#loader.from-index { animation: slideUpIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.loader-logo { text-align: center; }
+.loader-icon { width: 64px; height: 64px; margin: 0 auto 1.5rem; opacity: 0.85; }
+.loader-icon img { width: 100%; height: 100%; object-fit: contain; }
+.loader-logo .zh { font-size: 1.6rem; font-weight: 700; letter-spacing: 0.25em; color: #c4c2c2; line-height: 1.2; }
+.loader-logo .en { font-size: 0.5rem; letter-spacing: 0.5em; color: #666; margin-top: 0.5rem; text-transform: uppercase; }
+.loader-logo .line { width: 4rem; height: 1px; background: #555; margin: 0.8rem auto; }
+.loader-track { position: absolute; bottom: 4.5rem; left: 50%; transform: translateX(-50%); width: 55%; max-width: 520px; }
+.loader-bar { width: 100%; height: 3px; background: #444; }
+.loader-fill { height: 100%; background: #18d1ff; width: 0%; transition: width 0.05s linear; }
+.loader-info { display: flex; justify-content: space-between; margin-top: 0.6rem; font-size: 0.55rem; letter-spacing: 0.08em; color: #777; }
+.loader-info .cyan { color: #18d1ff; }
+.loader-copy { position: absolute; bottom: 1.5rem; left: 2rem; font-size: 0.55rem; letter-spacing: 0.12em; color: #555; }
+
+#nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 0 3rem; height: 60px; transition: background 0.4s ease; }
+#nav.scrolled { background: rgba(20,20,20,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.04); }
+.nav-left { display: flex; align-items: center; gap: 0.5rem; }
+.nav-brand-icon { width: 24px; height: 24px; }
+.nav-brand-icon img { width: 100%; height: 100%; object-fit: contain; }
+.nav-brand { text-decoration: none; display: flex; align-items: center; }
+.nav-brand-text { font-size: 1rem; font-weight: 700; letter-spacing: 0.2em; color: #fff; }
+.nav-right { display: flex; align-items: center; gap: 0.5rem; }
+.nav-back { font-size: 0.55rem; letter-spacing: 0.12em; color: #18d1ff; text-decoration: none; text-transform: uppercase; border: 1px solid rgba(24,209,255,0.25); padding: 0.3rem 0.8rem; transition: background 0.3s ease; }
+.nav-back:hover { background: rgba(24,209,255,0.1); }
+
+#main { max-width: 1200px; margin: 0 auto; padding: 80px 2rem 4rem; }
+#main h1 { font-size: 1.5rem; font-weight: 700; color: #fff; letter-spacing: 0.06em; margin-bottom: 1.5rem; text-align: center; }
+
+/* Toolbar */
+.toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.6rem 1rem; margin-bottom: 0.5rem;
+  background: #1e1e1e; border: 1px solid rgba(255,255,255,0.06); border-radius: 6px 6px 0 0;
+}
+.toolbar-left { display: flex; align-items: center; gap: 0.5rem; }
+.toolbar-right { display: flex; align-items: center; gap: 0.5rem; }
+.toolbar-btn {
+  font-size: 0.7rem; letter-spacing: 0.06em; color: #888;
+  background: transparent; border: 1px solid rgba(255,255,255,0.08);
+  padding: 0.35rem 0.8rem; cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.toolbar-btn:hover { color: #18d1ff; border-color: rgba(24,209,255,0.3); background: rgba(24,209,255,0.05); }
+.toolbar-btn.active { color: #18d1ff; border-color: rgba(24,209,255,0.4); background: rgba(24,209,255,0.08); }
+.toolbar-btn.primary { color: #18d1ff; border-color: rgba(24,209,255,0.3); }
+.toolbar-btn.primary:hover { background: rgba(24,209,255,0.12); }
+
+/* Editor panel */
+.editor-wrap {
+  display: flex; gap: 0; height: calc(100vh - 220px); min-height: 420px;
+  border: 1px solid rgba(255,255,255,0.06); border-top: none; border-radius: 0 0 6px 6px;
+  overflow: hidden;
+}
+.editor-pane {
+  flex: 1; display: flex; flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+.editor-pane:last-child { border-right: none; }
+.editor-pane-header {
+  padding: 0.4rem 1rem; font-size: 0.6rem; letter-spacing: 0.1em; color: #666;
+  background: #1a1a1a; border-bottom: 1px solid rgba(255,255,255,0.04);
+  text-transform: uppercase;
+}
+#editor {
+  flex: 1; width: 100%; padding: 1rem;
+  background: #181818; color: #c4c2c2;
+  border: none; outline: none; resize: none;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', 'Microsoft YaHei', monospace;
+  font-size: 0.82rem; line-height: 1.7; tab-size: 2;
+}
+#preview {
+  flex: 1; padding: 1rem 1.2rem; overflow-y: auto;
+  background: #181818; color: #c4c2c2;
+  font-size: 0.88rem; line-height: 1.8;
+}
+#preview h1, #preview h2, #preview h3 { color: #fff; margin: 1em 0 0.5em; }
+#preview h1 { font-size: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.3em; }
+#preview h2 { font-size: 1.25rem; }
+#preview h3 { font-size: 1.05rem; }
+#preview p { margin: 0.5em 0; }
+#preview code {
+  background: rgba(24,209,255,0.08); color: #18d1ff;
+  padding: 0.15em 0.4em; border-radius: 3px; font-size: 0.82em;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+#preview pre {
+  background: #111; border: 1px solid rgba(255,255,255,0.06); border-radius: 4px;
+  padding: 1rem; overflow-x: auto; margin: 0.8em 0;
+}
+#preview pre code { background: none; color: #c4c2c2; padding: 0; font-size: 0.82em; }
+#preview blockquote {
+  border-left: 3px solid #18d1ff; padding: 0.3em 1em; color: #999;
+  margin: 0.8em 0; background: rgba(24,209,255,0.02);
+}
+#preview ul, #preview ol { padding-left: 1.5em; margin: 0.5em 0; }
+#preview li { margin: 0.2em 0; }
+#preview a { color: #18d1ff; text-decoration: none; }
+#preview a:hover { text-decoration: underline; }
+#preview table { border-collapse: collapse; width: 100%; margin: 0.8em 0; }
+#preview th, #preview td { border: 1px solid rgba(255,255,255,0.08); padding: 0.4em 0.8em; text-align: left; }
+#preview th { background: rgba(24,209,255,0.06); color: #18d1ff; }
+#preview hr { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 1.5em 0; }
+#preview img { max-width: 100%; border-radius: 4px; }
+#preview strong { color: #fff; }
+
+.toast {
+  position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+  background: #18d1ff; color: #141414; padding: 0.5rem 1.5rem;
+  border-radius: 4px; font-size: 0.8rem; font-weight: 600;
+  opacity: 0; transition: opacity 0.3s ease; z-index: 10000; pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+footer#footer {
+  text-align: center; padding: 2rem; border-top: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.65rem; color: #555; letter-spacing: 0.06em;
+  display: flex; justify-content: center; align-items: center; gap: 1.5rem;
+}
+.footer-links { display: flex; gap: 1rem; }
+.footer-links a { color: #666; text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: #18d1ff; }
+
+@media (max-width: 768px) {
+  .editor-wrap { flex-direction: column; height: auto; min-height: auto; }
+  .editor-pane { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); height: 50vh; }
+  .editor-pane:last-child { border-bottom: none; }
+  #nav { padding: 0 1rem; }
+  #main { padding: 70px 0.5rem 2rem; }
+  .toolbar { flex-wrap: wrap; gap: 0.4rem; }
+}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-logo">
+    <div class="loader-icon"><img src="../img/airesIcon.png" alt="AIRES"></div>
+    <div class="zh">Markdown 编辑器</div>
+    <div class="en">MARKDOWN EDITOR</div>
+    <div class="line"></div>
+  </div>
+  <div class="loader-track">
+    <div class="loader-bar"><div class="loader-fill" id="loaderFill"></div></div>
+    <div class="loader-info">
+      <span class="cyan">LOADING TOOL</span>
+      <span id="loaderPct">0%</span>
+    </div>
+  </div>
+  <div class="loader-copy">&copy; 2026 AIRES PRIVATE</div>
+</div>
+
+<div id="page-content">
+
+<nav id="nav">
+  <div class="nav-left">
+    <a href="../index.html" class="nav-brand"><span class="nav-brand-icon"><img src="../img/airesIcon.png" alt="AIRES"></span></a>
+    <span class="nav-brand-text">MD EDITOR</span>
+  </div>
+  <div class="nav-right">
+    <a href="../index.html" class="nav-back">← BACK</a>
+  </div>
+</nav>
+
+<div id="main">
+  <h1>Markdown 编辑器</h1>
+
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="toolbar-btn active" id="btnSplit" onclick="setMode('split')">分屏</button>
+      <button class="toolbar-btn" id="btnEdit" onclick="setMode('edit')">纯编辑</button>
+      <button class="toolbar-btn" id="btnPreview" onclick="setMode('preview')">纯预览</button>
+    </div>
+    <div class="toolbar-right">
+      <button class="toolbar-btn primary" onclick="copyMD()">复制 MD</button>
+      <button class="toolbar-btn primary" onclick="downloadMD()">下载 .md</button>
+    </div>
+  </div>
+
+  <div class="editor-wrap" id="editorWrap">
+    <div class="editor-pane" id="paneEditor">
+      <div class="editor-pane-header">MARKDOWN</div>
+      <textarea id="editor" placeholder="# 开始编写 Markdown...&#10;&#10;支持标题、列表、代码块、表格等&#10;&#10;> 实时预览在右侧"></textarea>
+    </div>
+    <div class="editor-pane" id="panePreview">
+      <div class="editor-pane-header">PREVIEW</div>
+      <div id="preview"></div>
+    </div>
+  </div>
+</div>
+
+<footer id="footer">
+  <span>&copy; 2026 AIRES PRIVATE WEB SITE</span>
+  <div class="footer-links">
+    <a href="../index.html">HOME</a>
+    <a href="../subPage/md-test.html">MD TEST</a>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// --- Markdown Parser ---
+function parseMD(src) {
+  var h = src;
+  // Code blocks (fenced)
+  h = h.replace(/```(\w*)\n([\s\S]*?)```/g, function(_, lang, code) {
+    return '<pre><code class="language-' + lang + '">' + esc(code.trimEnd()) + '</code></pre>';
+  });
+  // Inline code (must be after fenced)
+  h = h.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Headings
+  h = h.replace(/^###### (.+)$/gm, '<h6>$1</h6>');
+  h = h.replace(/^##### (.+)$/gm, '<h5>$1</h5>');
+  h = h.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+  h = h.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  h = h.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  h = h.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  // Horizontal rule
+  h = h.replace(/^---$/gm, '<hr>');
+  // Bold / italic
+  h = h.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  // Links
+  h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+  // Images
+  h = h.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+  // Blockquote
+  h = h.replace(/^&gt; (.+)$/gm, '<blockquote><p>$1</p></blockquote>');
+  // Merge adjacent blockquotes
+  h = h.replace(/<\/blockquote>\n<blockquote>/g, '\n');
+  // Unordered lists
+  h = h.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
+  h = h.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+  // Ordered lists
+  h = h.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+  // Tables
+  h = h.replace(/^\|(.+)\|$/gm, function(line) {
+    var cells = line.split('|').filter(function(c) { return c.trim(); });
+    if (/^[\-\:\s\|]+$/.test(line)) return '<!--table-sep-->';
+    var tag = 'td';
+    return '<tr>' + cells.map(function(c) { return '<' + tag + '>' + c.trim() + '</' + tag + '>'; }).join('') + '</tr>';
+  });
+  h = h.replace(/(<tr>.*<\/tr>\n?)+/g, function(m) {
+    if (m.indexOf('<!--table-sep-->') !== -1) return '';
+    return '<table>' + m + '</table>';
+  });
+  h = h.replace(/<!--table-sep-->/g, '');
+  // Paragraphs (remaining lines)
+  h = h.replace(/^(?!<[a-z/]|$)(.+)$/gm, '<p>$1</p>');
+  // Clean empty paragraphs
+  h = h.replace(/<p>\s*<\/p>/g, '');
+  return h;
+}
+
+function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+// --- Editor ---
+var editor = document.getElementById('editor');
+var preview = document.getElementById('preview');
+var currentMode = 'split';
+
+// Default demo content
+editor.value =
+  '# Markdown 编辑器\n\n' +
+  '欢迎使用 AIRES Markdown 编辑器。\n\n' +
+  '## 功能\n\n' +
+  '- **实时预览** — 编辑时自动刷新\n' +
+  '- **分屏 / 纯编辑 / 纯预览** 三种模式\n' +
+  '- **复制为 MD 文本** 或 **下载 .md 文件**\n\n' +
+  '## 代码示例\n\n' +
+  '```javascript\n' +
+  'function hello() {\n' +
+  '  console.log("Hello, AIRES!");\n' +
+  '}\n' +
+  '```\n\n' +
+  '## 引用\n\n' +
+  '> Markdown 是一种轻量级标记语言\n\n' +
+  '## 表格\n\n' +
+  '| 特性 | 状态 |\n' +
+  '|------|------|\n' +
+  '| 编辑 | ✓ |\n' +
+  '| 预览 | ✓ |\n' +
+  '| 导出 | ✓ |\n';
+
+function render() {
+  preview.innerHTML = parseMD(editor.value);
+}
+editor.addEventListener('input', render);
+render();
+
+function setMode(mode) {
+  currentMode = mode;
+  var paneE = document.getElementById('paneEditor');
+  var paneP = document.getElementById('panePreview');
+  document.getElementById('btnSplit').classList.toggle('active', mode === 'split');
+  document.getElementById('btnEdit').classList.toggle('active', mode === 'edit');
+  document.getElementById('btnPreview').classList.toggle('active', mode === 'preview');
+  if (mode === 'split') { paneE.style.display = ''; paneP.style.display = ''; }
+  else if (mode === 'edit') { paneE.style.display = ''; paneP.style.display = 'none'; }
+  else { paneE.style.display = 'none'; paneP.style.display = ''; }
+}
+
+function copyMD() {
+  navigator.clipboard.writeText(editor.value).then(function() {
+    showToast('已复制到剪贴板');
+  }).catch(function() {
+    editor.select();
+    document.execCommand('copy');
+    showToast('已复制到剪贴板');
+  });
+}
+
+function downloadMD() {
+  var blob = new Blob([editor.value], { type: 'text/markdown' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'document.md';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('下载中...');
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.classList.remove('show'); }, 2000);
+}
+
+// --- Loader ---
+(function initLoader() {
+  var bar = document.getElementById('loaderFill');
+  var pct = document.getElementById('loaderPct');
+  var scr  = document.getElementById('loader');
+  var fromIndex = sessionStorage.getItem('fromIndex');
+  if (fromIndex) { sessionStorage.removeItem('fromIndex'); }
+
+  var p = 0;
+  var t = setInterval(function() {
+    p += Math.random() * 8 + 2;
+    if (p >= 100) { p = 100; clearInterval(t); }
+    bar.style.width = p + '%';
+    pct.textContent = Math.floor(p) + '%';
+    if (p === 100) {
+      setTimeout(function() {
+        scr.classList.add('done');
+        if (fromIndex) {
+          scr.classList.add('from-index');
+          setTimeout(function() {
+            document.getElementById('page-content').classList.add('visible');
+          }, 500);
+        } else {
+          document.getElementById('page-content').classList.add('visible');
+        }
+      }, 400);
+    }
+  }, 60);
+})();
+
+// --- Nav scroll ---
+window.addEventListener('scroll', function() {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 10);
+});
+</script>
+</body>
+</html>
