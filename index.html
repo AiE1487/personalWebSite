@@ -1,0 +1,1386 @@
+﻿﻿﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<link rel="icon" type="image/png" href="img/airesIcon.png">
+<title>AIRES PRIVATE WEB SITE — WELCOME</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+/* =============================
+   RHINE LAB DARK — INDEX
+   ============================= */
+
+/* 1. RESET & BASE */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  font-size: 50px;
+  scroll-behavior: smooth;
+  overflow: hidden;
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(150deg, #1a1c1e 0%, #141414 30%, #111213 70%, #181a1c 100%);
+  font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  color: #c4c2c2;
+  overflow: hidden;
+  line-height: 1.6;
+}
+
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: #141414; }
+::-webkit-scrollbar-thumb { background: #18d1ff; border-radius: 2px; }
+
+/* 2. MAIN CONTAINER */
+#mainBox {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  perspective: 1000px;
+}
+
+/* 3. CORE BOX — cyan accent */
+.core-box {
+  position: absolute;
+  top: 34%;
+  left: 11%;
+  width: 5.5rem;
+  height: 4rem;
+  background: #18d1ff;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: top 1.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1), transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.core-box .main-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.33rem;
+  letter-spacing: 0.12em;
+  color: #141414;
+  line-height: 1;
+}
+
+.core-box .sub-text {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 0.27rem;
+  letter-spacing: 0.2em;
+  color: rgba(20,20,20,0.7);
+  margin-top: 0.15rem;
+  text-transform: uppercase;
+}
+
+/* Cross lines */
+.core-box::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 300vh;
+  background: #18d1ff;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  opacity: 0.5;
+  transition: opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.core-box::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300vw;
+  height: 2px;
+  background: #18d1ff;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  opacity: 0.5;
+  display: none;
+  transition: opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 4. LEFT BACKGROUND */
+.left-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 55%;
+  height: 100vh;
+  background: radial-gradient(ellipse at 30% 50%, rgba(24,209,255,0.03) 0%, transparent 70%);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 1.2s ease 0.8s;
+}
+
+.left-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(24,209,255,0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.6;
+}
+
+/* 5. RIGHT DOT MATRIX */
+.right-background {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 45%;
+  height: 100vh;
+  z-index: -2;
+  opacity: 0;
+  transition: opacity 1s ease 0.6s;
+}
+
+.x-decoration {
+  position: absolute;
+}
+
+.x-decoration .center-dot {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #18d1ff;
+  opacity: 0.5;
+  border-radius: 0;
+}
+
+.x-decoration .line {
+  position: absolute;
+}
+
+/* 6. MIDDLE LOGO (ultrawide) */
+.middle-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -100;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  display: none;
+}
+
+.middle-logo .logo-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3rem;
+  letter-spacing: 0.15em;
+  color: rgba(24,209,255,0.03);
+  white-space: nowrap;
+}
+
+/* 7. LEFT-TOP INFO */
+.left-top-info {
+  position: absolute;
+  top: 1%;
+  left: 3%;
+  z-index: 100;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s;
+}
+
+.left-top-info .info {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.36rem;
+  letter-spacing: 0.08em;
+  color: #18d1ff;
+  margin-bottom: 0.05rem;
+}
+
+.left-top-info .name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+  color: #fff;
+  font-weight: 700;
+}
+
+.left-top-info .os {
+  font-size: 0.22rem;
+  letter-spacing: 0.1em;
+  color: #666;
+  margin-top: 0.1rem;
+  text-transform: uppercase;
+}
+
+/* 8. LEFT-MIDDLE CONTACT */
+.left-middle-info {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  opacity: 0;
+  transform: translateY(-50%) translateX(-100%);
+  transition: opacity 0.8s ease 0.5s, transform 0.8s ease 0.5s;
+}
+
+.left-middle-info::before {
+  content: '';
+  width: 2px;
+  height: 1.5rem;
+  background: #18d1ff;
+  margin-bottom: 0.2rem;
+}
+
+.left-middle-info .contact-link {
+  writing-mode: vertical-rl;
+  font-size: 0.2rem;
+  letter-spacing: 0.1em;
+  color: #666;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  text-transform: uppercase;
+}
+
+.left-middle-info .contact-link:hover {
+  color: #18d1ff;
+}
+
+/* 9. LEFT-BOTTOM INFO */
+.left-bottom-info {
+  position: absolute;
+  left: 3%;
+  bottom: 2%;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  opacity: 0;
+  transform: translateX(-300%);
+  transition: opacity 0.8s ease 0.7s, transform 0.8s ease 0.7s;
+}
+
+.left-bottom-info::before {
+  content: '';
+  width: 1.5rem;
+  height: 0.4rem;
+  background: #18d1ff;
+  flex-shrink: 0;
+}
+
+.left-bottom-info .info-text {
+  font-size: 0.22rem;
+  letter-spacing: 0.06em;
+  color: #888;
+}
+
+/* 10. RIGHT-INFO PANEL */
+.right-info {
+  position: absolute;
+  right: 0;
+  bottom: 15%;
+  z-index: 100;
+  text-align: right;
+  padding-right: 3%;
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 0.8s ease 0.4s, transform 0.8s ease 0.4s;
+}
+
+.right-info .role {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.32rem;
+  letter-spacing: 0.08em;
+  color: #18d1ff;
+  text-transform: uppercase;
+}
+
+.right-info .name {
+  position: relative;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 0.55rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #fff;
+  margin: 0.1rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.2rem;
+}
+
+.right-info .name::after {
+  content: '';
+  width: 1rem;
+  height: 0.4rem;
+  background: #18d1ff;
+}
+
+.right-info .uid {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.22rem;
+  letter-spacing: 0.1em;
+  color: #666;
+}
+
+/* 11. RIGHT 3D CAROUSEL CONTAINER */
+.right-middle-container {
+  position: absolute;
+  top: 45%;
+  right: 8%;
+  transform: scale(0.8) translate3d(0, -50%, -3rem) rotateY(-20deg);
+  width: 24rem;
+  height: 80%;
+  max-height: 80%;
+  z-index: 10;
+  background: rgba(24,28,32,0.92);
+  border: 1px solid rgba(24,209,255,0.08);
+  overflow: hidden;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 60px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(24,209,255,0.03);
+}
+
+.right-middle-container:hover {
+  transform: scale(1) translate3d(-0.4rem, -50%, -3rem) rotateY(-10deg);
+  border-color: rgba(24,209,255,0.18);
+  box-shadow: 0 0 80px rgba(24,209,255,0.04), 0 0 60px rgba(0,0,0,0.5);
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Inner content panel */
+.paper-clip-info {
+  padding: 0.6rem 0.6rem 0.3rem;
+  border-bottom: 1px solid rgba(24,209,255,0.06);
+  flex-shrink: 0;
+}
+
+.paper-clip-info .panel-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.48rem;
+  letter-spacing: 0.08em;
+  color: #fff;
+  margin-bottom: 0.15rem;
+}
+
+.paper-clip-info .panel-subtitle {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.26rem;
+  letter-spacing: 0.1em;
+  color: #18d1ff;
+  text-transform: uppercase;
+  margin-bottom: 0.1rem;
+}
+
+.paper-clip-info .panel-desc {
+  font-size: 0.24rem;
+  letter-spacing: 0.06em;
+  color: #888;
+  line-height: 1.5;
+}
+
+/* Swiper / carousel items */
+.right-swiper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.2rem 0;
+}
+
+.right-swiper::-webkit-scrollbar { width: 2px; }
+.right-swiper::-webkit-scrollbar-track { background: transparent; }
+.right-swiper::-webkit-scrollbar-thumb { background: rgba(24,209,255,0.15); }
+
+.swiper-item {
+  position: relative;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease;
+  border-bottom: 1px solid rgba(24,209,255,0.04);
+}
+
+.swiper-item:hover {
+  background: rgba(24,209,255,0.04);
+}
+
+.swiper-item.active {
+  background: rgba(24,209,255,0.05);
+  border-left: 2px solid #18d1ff;
+}
+
+.swiper-item .item-idx {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.36rem;
+  color: #555;
+  letter-spacing: 0.06em;
+}
+
+.swiper-item .item-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.52rem;
+  letter-spacing: 0.06em;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin: 0.05rem 0;
+}
+
+.swiper-item .item-title::before {
+  content: '';
+  width: 0.5rem;
+  height: 3px;
+  background: #18d1ff;
+  flex-shrink: 0;
+}
+
+.swiper-item .item-label {
+  font-size: 0.26rem;
+  letter-spacing: 0.1em;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.swiper-item .item-desc {
+  font-size: 0.28rem;
+  color: #888;
+  margin-top: 0.08rem;
+  line-height: 1.5;
+}
+
+/* Cyan dots on corners */
+.swiper-item .cyan-dot {
+  position: absolute;
+  width: 0.1rem;
+  height: 0.1rem;
+  background: #18d1ff;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.swiper-item:hover .cyan-dot { opacity: 0.7; }
+.swiper-item .cyan-dot.lt { top: 0.15rem; left: 0.15rem; }
+.swiper-item .cyan-dot.rt { top: 0.15rem; right: 0.15rem; }
+.swiper-item .cyan-dot.lb { bottom: 0.15rem; left: 0.15rem; }
+.swiper-item .cyan-dot.rb { bottom: 0.15rem; right: 0.15rem; }
+
+/* Sublist */
+.swiper-item .sublist {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1), margin 0.4s ease, opacity 0.3s ease;
+  margin-top: 0;
+  opacity: 0;
+}
+
+.swiper-item.active .sublist {
+  max-height: 300px;
+  margin-top: 0.2rem;
+  opacity: 1;
+}
+
+.sublist a {
+  display: block;
+  padding: 0.2rem 0 0.2rem 0.5rem;
+  font-size: 0.28rem;
+  color: #888;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: color 0.3s ease, background 0.3s ease, padding-left 0.3s ease, border-color 0.3s ease;
+  border-left: 1px solid rgba(24,209,255,0.1);
+  position: relative;
+}
+
+.sublist a .sub-tag {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.24rem;
+  letter-spacing: 0.08em;
+  color: #555;
+  float: right;
+  margin-top: 0.02rem;
+  transition: color 0.3s ease;
+}
+
+.sublist a:hover {
+  color: #18d1ff;
+  background: rgba(24,209,255,0.04);
+  border-left-color: #18d1ff;
+  padding-left: 0.7rem;
+}
+
+.sublist a:hover .sub-tag { color: #18d1ff; }
+
+.sublist .empty-item {
+  display: block;
+  padding: 0.2rem 0 0.2rem 0.5rem;
+  font-size: 0.26rem;
+  color: #444;
+  letter-spacing: 0.06em;
+  border-left: 1px solid rgba(24,209,255,0.04);
+}
+
+/* 12. AUTHOR INFO (bottom right) */
+.author-info {
+  position: absolute;
+  right: 3%;
+  bottom: 2%;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  opacity: 0;
+  transform: translateX(300%);
+  transition: opacity 0.8s ease 0.7s, transform 0.8s ease 0.7s;
+}
+
+.author-info::after {
+  content: '';
+  width: 1.5rem;
+  height: 0.4rem;
+  background: #18d1ff;
+  flex-shrink: 0;
+}
+
+.author-info .info-text {
+  font-size: 0.2rem;
+  letter-spacing: 0.06em;
+  color: #888;
+}
+
+/* 13. CORNER BOX DECORATION */
+.corner-box {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  width: 2rem;
+  height: 2rem;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 1s ease 1s;
+}
+
+.corner-box::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-left: 3px solid #18d1ff;
+  border-bottom: 3px solid #18d1ff;
+}
+
+.corner-box::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-right: 3px solid #18d1ff;
+  border-top: 3px solid #18d1ff;
+}
+
+/* 14. ANIMATION STATES */
+
+/* Phase 1: unactive */
+#mainBox.unactive { pointer-events: none; }
+#mainBox.unactive .core-box {
+  top: 2%;
+  opacity: 0;
+}
+
+#mainBox.unactive .core-box::before,
+#mainBox.unactive .core-box::after {
+  opacity: 0;
+}
+
+#mainBox.unactive .core-box .main-text,
+#mainBox.unactive .core-box .sub-text {
+  opacity: 0;
+}
+
+#mainBox.unactive .left-top-info,
+#mainBox.unactive .left-middle-info,
+#mainBox.unactive .left-bottom-info,
+#mainBox.unactive .right-info,
+#mainBox.unactive .author-info,
+#mainBox.unactive .corner-box {
+  opacity: 0;
+}
+
+#mainBox.unactive .right-middle-container {
+  transform: scale(0.6) translate3d(0, -50%, -5rem) rotateY(-30deg);
+  opacity: 0;
+}
+
+#mainBox.unactive .right-background,
+#mainBox.unactive .left-background {
+  opacity: 0;
+}
+
+/* Phase 3: start-process */
+#mainBox.start-process .left-background { opacity: 1; }
+#mainBox.start-process .right-background { opacity: 1; }
+#mainBox.start-process .right-middle-container {
+  transform: scale(1) translate3d(0, -50%, -3rem) rotateY(-20deg);
+}
+#mainBox.start-process .left-bottom-info { opacity: 1; transform: translateX(0); }
+#mainBox.start-process .author-info { opacity: 1; transform: translateX(0); }
+#mainBox.start-process .left-middle-info { opacity: 1; transform: translateY(-50%) translateX(0); }
+#mainBox.start-process .left-top-info { opacity: 1; transform: translateY(0); }
+#mainBox.start-process .right-info { opacity: 1; transform: translateX(0); }
+
+#mainBox.start-process .corner-box { opacity: 1; }
+
+/* 15. SMALL TIP */
+.small-tip {
+  position: absolute;
+  top: 77% !important;
+  left: calc(92% - 21.5rem) !important;
+  right: auto !important;
+  transform: rotateY(-20deg) !important;
+  z-index: 100;
+  font-size: 0.18rem;
+  letter-spacing: 0.12em;
+  color: #555;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 0.8s ease 1s;
+}
+
+#mainBox.start-process .small-tip { opacity: 1; }
+
+/* Phase 4: exiting 鈥?fold inward while sliding off-screen */
+#mainBox.exiting .core-box {
+  opacity: 0;
+  transform: translateY(-80vh) rotateX(-70deg);
+  transition: opacity 0.3s cubic-bezier(0.55, 0, 1, 0.45), transform 0.3s cubic-bezier(0.55, 0, 1, 0.45);
+}
+#mainBox.exiting .core-box::before,
+#mainBox.exiting .core-box::after {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+#mainBox.exiting .left-top-info {
+  opacity: 0;
+  transform: translateX(-60vw) rotateY(75deg);
+  transition: opacity 0.3s cubic-bezier(0.55, 0, 1, 0.45), transform 0.3s cubic-bezier(0.55, 0, 1, 0.45);
+}
+#mainBox.exiting .left-middle-info {
+  opacity: 0;
+  transform: translateY(-50%) translateX(-55vw) rotateY(85deg);
+  transition: opacity 0.3s cubic-bezier(0.55, 0, 1, 0.45), transform 0.3s cubic-bezier(0.55, 0, 1, 0.45);
+}
+#mainBox.exiting .left-bottom-info {
+  opacity: 0;
+  transform: translateX(-60vw) rotateY(75deg);
+  transition: opacity 0.3s cubic-bezier(0.55, 0, 1, 0.45), transform 0.3s cubic-bezier(0.55, 0, 1, 0.45);
+}
+#mainBox.exiting .right-info {
+  opacity: 0;
+  transform: translateX(60vw) rotateY(-75deg);
+  transition: opacity 0.3s cubic-bezier(0.55, 0, 1, 0.45), transform 0.3s cubic-bezier(0.55, 0, 1, 0.45);
+}
+#mainBox.exiting .right-middle-container {
+  opacity: 0;
+  transform: scale(0.4) translate3d(50%, -50%, -10rem) rotateY(-70deg);
+  transition: opacity 0.3s cubic-bezier(0.55, 0, 1, 0.45), transform 0.3s cubic-bezier(0.55, 0, 1, 0.45);
+}
+#mainBox.exiting .author-info {
+  opacity: 0;
+  transform: translateX(60vw) rotateY(-75deg);
+  transition: opacity 0.3s cubic-bezier(0.55, 0, 1, 0.45), transform 0.3s cubic-bezier(0.55, 0, 1, 0.45);
+}
+#mainBox.exiting .corner-box {
+  opacity: 0;
+  transform: translate(40vw, -20vh) rotateY(-50deg) scale(0.5);
+  transition: opacity 0.25s cubic-bezier(0.55, 0, 1, 0.45), transform 0.25s cubic-bezier(0.55, 0, 1, 0.45);
+}
+#mainBox.exiting .small-tip {
+  opacity: 0;
+  transform: translateY(40vh) rotateX(50deg);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+#mainBox.exiting .left-background,
+#mainBox.exiting .right-background {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* 16. PAGE TRANSITION OVERLAY */
+.page-transition {
+  position: fixed;
+  z-index: 99999;
+  background: #2a2a2a;
+  pointer-events: none;
+  display: none;
+  transition: left 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              top 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.transition-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.9);
+  opacity: 0;
+  transition: opacity 0.4s ease 0.15s;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* 17. RESPONSIVE */
+
+/* 0. LOADING SCREEN */
+/* 浣跨敤绯荤粺瀛椾綋閬垮厤 web font 鍔犺浇瀵艰嚧鐨?FOUT 灏哄璺冲姩 */
+#loader {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #2a2a2a;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+#loader.done {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+#loader .loader-bottom {
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  bottom: 40px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+#loader .loader-brand {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 14px;
+}
+#loader .loader-icon {
+  width: 82px;
+  height: 82px;
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+#loader .loader-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+#loader .loader-main {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #c4c2c2;
+  line-height: 1.2;
+}
+#loader .loader-sub {
+  font-size: 26px;
+  letter-spacing: 0.35em;
+  color: #666;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+#loader .loader-track {
+  position: absolute;
+  top: 5%;
+  right: 24px;
+  width: 50%;
+  max-width: 640px;
+  min-width: 260px;
+}
+#loader .loader-bar {
+  width: 100%;
+  height: 2px;
+  background: #444;
+}
+#loader .loader-fill {
+  height: 100%;
+  background: #18d1ff;
+  width: 0%;
+  transition: width 0.05s linear;
+}
+#loader .loader-info {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  color: #777;
+  white-space: nowrap;
+}
+#loader .loader-info .cyan { color: #18d1ff; }
+#loader .loader-copy {
+  font-size: 20px;
+  letter-spacing: 0.08em;
+  color: #555;
+}
+
+/* Small mobile: max-width 1280px */
+@media (max-width: 1280px) {
+  .right-middle-container {
+    width: 90vw;
+    height: 70%;
+  }
+
+  .swiper-item .item-title { font-size: 0.42rem; }
+  .swiper-item .item-desc { font-size: 0.26rem; }
+
+  .paper-clip-info { display: none; }
+}
+
+/* Mobile: max-width 992px */
+@media (max-width: 992px) {
+  .core-box {
+    top: 8%;
+    left: 5%;
+    transform: none;
+    width: 3.2rem;
+    height: 2.4rem;
+  }
+
+  .core-box .main-text { font-size: 0.9rem; }
+  .core-box .sub-text { font-size: 0.18rem; }
+
+  .core-box::before { display: none; }
+  .core-box::after { display: block; }
+
+  .left-top-info {
+    top: 1% !important;
+    right: 5%;
+    left: auto;
+    transform: none;
+    text-align: right;
+  }
+
+  .left-top-info .info { display: none; }
+
+  .left-middle-info { display: none; }
+
+  .right-info { display: none; }
+
+  .right-middle-container {
+    top: 24%;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90vw !important;
+    height: 62%;
+    max-height: 62%;
+    border-radius: 0;
+  }
+
+  .swiper-item .item-idx { font-size: 0.2rem; }
+  .swiper-item .item-title { font-size: 0.28rem; }
+  .swiper-item .item-label { font-size: 0.15rem; }
+  .swiper-item .item-desc { font-size: 0.17rem; }
+  .sublist a { font-size: 0.19rem; }
+  .sublist a .sub-tag { font-size: 0.15rem; }
+  .sublist .empty-item { font-size: 0.17rem; }
+  .paper-clip-info .panel-title { font-size: 0.32rem; }
+
+  .right-middle-container:hover {
+    transform: translateX(-50%);
+  }
+
+  #mainBox.start-process .right-middle-container {
+    transform: translateX(-50%);
+  }
+
+  #mainBox.unactive .right-middle-container {
+    transform: translateX(-50%);
+    opacity: 0;
+  }
+
+  #mainBox.exiting .right-middle-container {
+    transform: translateX(-50%) translateY(40vh);
+    opacity: 0;
+  }
+
+  /* Loader mobile overrides */
+  #loader .loader-track {
+    width: 65% !important;
+    min-width: 0 !important;
+    max-width: 380px !important;
+    top: 5% !important;
+    right: 5% !important;
+  }
+  #loader .loader-info {
+    font-size: 11px !important;
+    margin-top: 4px !important;
+    white-space: nowrap !important;
+  }
+  #loader .loader-bottom {
+    left: 5% !important;
+    right: 5% !important;
+    bottom: 5% !important;
+    align-items: flex-end !important;
+    justify-content: flex-start !important;
+  }
+  #loader .loader-brand {
+    display: contents;
+  }
+  #loader .loader-icon {
+    width: 36px !important;
+    height: 46px !important;
+    align-self: flex-end;
+    margin-right: 6px;
+    margin-bottom: 3px;
+  }
+  #loader .loader-icon img {
+    object-fit: contain;
+    object-position: center bottom;
+  }
+  #loader .loader-text {
+    display: flex;
+    flex-direction: column;
+    align-self: flex-end;
+  }
+  #loader .loader-main {
+    font-size: 14px !important;
+    letter-spacing: 0;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  #loader .loader-sub {
+    font-size: 11px !important;
+    line-height: 1.2;
+    margin-top: 0 !important;
+  }
+  #loader .loader-copy {
+    font-size: 11px !important;
+    margin-left: auto;
+  }
+
+  .left-bottom-info {
+    left: 5%;
+    bottom: 3%;
+    transform: translateX(-300%);
+  }
+
+  .left-bottom-info::before { display: none; }
+
+  .left-bottom-info .info-text { font-size: 0.18rem; }
+
+  .author-info {
+    right: 5%;
+    bottom: 3%;
+    transform: translateX(300%);
+  }
+
+  .author-info::after { display: none; }
+
+  .author-info .info-text { font-size: 0.18rem; }
+
+  .small-tip { display: none; }
+
+  .corner-box { display: none; }
+
+  .right-background { display: none; }
+
+  .left-background { display: none; }
+
+  /* unactive mobile override */
+  #mainBox.unactive .core-box {
+    top: 6%;
+    left: 5%;
+    transform: none;
+    opacity: 0;
+  }
+  #mainBox.unactive .left-top-info {
+    top: 2%;
+    right: 5%;
+    left: auto;
+    transform: none;
+  }
+}
+
+/* Ultrawide: min-aspect-ratio 21/9 */
+@media (min-aspect-ratio: 21/9) {
+  .middle-logo {
+    display: block;
+  }
+
+  #mainBox.start-process .middle-logo { opacity: 1; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ========== LOADING SCREEN ========== -->
+<div id="loader">
+  <!-- 右上角：进度条 -->
+  <div class="loader-track">
+    <div class="loader-bar"><div class="loader-fill" id="loaderFill"></div></div>
+    <div class="loader-info">
+      <span class="cyan" id="loaderStatus">INITIALIZING</span>
+      <span id="loaderPct">0%</span>
+    </div>
+  </div>
+  <!-- 搴曢儴鏍忥細鍝佺墝(宸? + 鐗堟潈(鍙?锛屽悓涓€姘村钩绾?-->
+  <div class="loader-bottom">
+    <div class="loader-brand">
+      <div class="loader-icon"><img src="img/airesIcon.png" alt="AIRES"></div>
+      <div class="loader-text">
+        <div class="loader-main">AIRES PRIVATE WEB SITE</div>
+        <div class="loader-sub">INTERNAL DATABASE</div>
+      </div>
+    </div>
+    <div class="loader-copy">&copy; 2026 AIRES PRIVATE</div>
+  </div>
+</div>
+
+<div id="mainBox" class="unactive">
+
+  <!-- Core Box 鈥?cyan accent -->
+  <div class="core-box">
+    <span class="main-text">VIEW</span>
+    <span class="sub-text">PRIVATE DATA & TOOLS</span>
+  </div>
+
+  <!-- Left Background -->
+  <div class="left-background"></div>
+
+  <!-- Right Dot Matrix Background -->
+  <div class="right-background" id="rightBg"></div>
+
+  <!-- Middle Logo (ultrawide only) -->
+  <div class="middle-logo">
+    <span class="logo-text">AIRES</span>
+  </div>
+
+  <!-- Left-Top Info -->
+  <div class="left-top-info">
+    <div class="info">INDEX / 01</div>
+    <div class="name">AIRES</div>
+    <div class="os">PRIVATE WEB SITE · EST. 2026</div>
+  </div>
+
+  <!-- Left-Middle Contact -->
+  <div class="left-middle-info">
+    <span class="contact-link">PRIVATE</span>
+    <span class="contact-link">SITE</span>
+    <span class="contact-link">INDEX</span>
+  </div>
+
+  <!-- Left-Bottom Info -->
+  <div class="left-bottom-info">
+    <span class="info-text">V2.7 · 24/7 AVAILABLE</span>
+  </div>
+
+  <!-- Right-Info Panel -->
+  <div class="right-info">
+    <div class="role">PRIVATE WEB SITE</div>
+    <div class="name">INTERNAL DATABASE</div>
+    <div class="uid">UID // AIRES</div>
+  </div>
+
+  <!-- Right 3D Carousel Container -->
+  <div class="right-middle-container">
+    <div class="paper-clip-info">
+      <div class="panel-title">NAVIGATION</div>
+      <div class="panel-subtitle">快捷链接</div>
+      <div class="panel-desc">私人网络站点索引 — 项目文档 · 代码仓库 · 工具资源</div>
+    </div>
+    <div class="right-swiper" id="swiperList">
+      <!-- Dynamically generated by JS -->
+    </div>
+  </div>
+
+  <!-- Author Info (bottom right) -->
+  <div class="author-info">
+    <span class="info-text">&copy; 2026 AIRES PRIVATE</span>
+  </div>
+
+  <!-- Corner Box Decoration -->
+  <div class="corner-box"></div>
+
+  <!-- Small Tip -->
+  <div class="small-tip">SCROLL OR INTERACT</div>
+
+</div>
+
+<!-- Page Transition Overlay -->
+<div class="page-transition" id="pageTransition">
+  <span class="transition-label" id="transitionLabel"></span>
+</div>
+
+<script>
+/* =============================
+   RHINE LAB DARK — INDEX JS
+   ============================= */
+
+/* --- Generate Dot Matrix (12 groups, 3 cols x 4 rows) --- */
+(function generateDotMatrix() {
+  var container = document.getElementById('rightBg');
+  var cols = 3;
+  var rows = 4;
+  var spacingX = 100 / (cols + 1);
+  var spacingY = 100 / (rows + 1);
+
+  for (var r = 1; r <= rows; r++) {
+    for (var c = 1; c <= cols; c++) {
+      var group = document.createElement('div');
+      group.className = 'x-decoration';
+      group.style.left = (spacingX * c) + '%';
+      group.style.top = (spacingY * r) + '%';
+      group.style.transform = 'translate(-50%, -50%)';
+
+      // Center dot
+      var dot = document.createElement('div');
+      dot.className = 'center-dot';
+      dot.style.cssText = 'top:0;left:0;transform:translate(-50%,-50%);';
+      group.appendChild(dot);
+
+      // Four directional lines (cyan gradient)
+      var directions = [
+        { name: 'top', grad: 'linear-gradient(to top, #18d1ff, transparent)' },
+        { name: 'bottom', grad: 'linear-gradient(to bottom, #18d1ff, transparent)' },
+        { name: 'left', grad: 'linear-gradient(to left, #18d1ff, transparent)' },
+        { name: 'right', grad: 'linear-gradient(to right, #18d1ff, transparent)' }
+      ];
+
+      var lineStyles = {
+        top:    'bottom:0;left:50%;width:1px;height:1rem;transform:translateX(-50%);',
+        bottom: 'top:0;left:50%;width:1px;height:1rem;transform:translateX(-50%);',
+        left:   'right:0;top:50%;width:1rem;height:1px;transform:translateY(-50%);',
+        right:  'left:0;top:50%;width:1rem;height:1px;transform:translateY(-50%);'
+      };
+      directions.forEach(function(d) {
+        var line = document.createElement('div');
+        line.className = 'line';
+        line.style.cssText = lineStyles[d.name] + 'background:' + d.grad + ';opacity:0.3;';
+        group.appendChild(line);
+      });
+
+      container.appendChild(group);
+    }
+  }
+})();
+
+/* --- Generate Swiper Items --- */
+(function generateSwiper() {
+  var items = [
+    {
+      idx: '01',
+      title: '项目文档',
+      label: 'PROJECTS',
+      desc: '项目规划、技术文档与实现方案',
+      sublist: []
+    },
+    {
+      idx: '02',
+      title: '代码仓库',
+      label: 'REPOSITORY',
+      desc: '源代码管理与版本控制',
+      sublist: []
+    },
+    {
+      idx: '03',
+      title: '工具集',
+      label: 'TOOLS',
+      desc: '常用开发工具与实用脚本',
+      sublist: [
+        { text: '科学计算器', tag: 'TOOL', href: 'subPage/calculator.html' },
+        { text: '哈希验证工具', tag: 'TOOL', href: 'subPage/hash-verify.html' },
+        { text: '日历视图', tag: 'TOOL', href: 'subPage/calendar.html' }
+      ]
+    },
+    {
+      idx: '04',
+      title: '图库资源',
+      label: 'GALLERY',
+      desc: '设计素材、截图与视觉资源',
+      sublist: []
+    },
+    {
+      idx: '05',
+      title: '文档归档',
+      label: 'ARCHIVE',
+      desc: '历史文档、备份与参考资料',
+      sublist: [
+        { text: '提示词工程系统性梳理', tag: 'DOC', href: 'subPage/prompt-engineering.html' },
+        { text: 'LLM 幻觉现象解析', tag: 'DOC', href: 'subPage/llm-hallucination.html' }
+      ]
+    },
+    {
+      idx: '06',
+      title: '实验性内容',
+      label: 'SANDBOX',
+      desc: '测试页面、实验项目与原型',
+      sublist: [
+        { text: 'Markdown 渲染测试', tag: 'DEMO', href: 'subPage/md-test.html' }
+      ]
+    }
+  ];
+var container = document.getElementById('swiperList');
+
+  items.forEach(function(item) {
+    var div = document.createElement('div');
+    div.className = 'swiper-item';
+
+    var html = '';
+    html += '<span class="cyan-dot lt"></span>';
+    html += '<span class="cyan-dot rt"></span>';
+    html += '<span class="cyan-dot lb"></span>';
+    html += '<span class="cyan-dot rb"></span>';
+    html += '<div class="item-idx">' + item.idx + '</div>';
+    html += '<div class="item-title">' + item.title + '</div>';
+    html += '<div class="item-label">' + item.label + '</div>';
+    html += '<div class="item-desc">' + item.desc + '</div>';
+
+    if (item.sublist && item.sublist.length > 0) {
+      html += '<div class="sublist">';
+      item.sublist.forEach(function(sub) {
+        html += '<a href="' + sub.href + '" data-transition="true">' + sub.text + '<span class="sub-tag">' + sub.tag + '</span></a>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="sublist"><span class="empty-item">无内容?/span></div>';
+    }
+
+    div.innerHTML = html;
+    div.addEventListener('click', function(e) {
+      // Handle page transition for any sublink (direct or nested)
+      var link = e.target.closest('a[data-transition="true"]');
+      if (link) {
+        e.preventDefault();
+        triggerPageTransition(link.getAttribute('href'), link);
+        return;
+      }
+
+      // Toggle expand/collapse
+      var wasActive = div.classList.contains('active');
+      var allItems = container.querySelectorAll('.swiper-item.active');
+      allItems.forEach(function(el) { el.classList.remove('active'); });
+      if (!wasActive) div.classList.add('active');
+    });
+
+    container.appendChild(div);
+  });
+})();
+
+/* --- Page Transition Animation --- */
+function triggerPageTransition(href, clickedEl) {
+  var overlay = document.getElementById('pageTransition');
+  var label = document.getElementById('transitionLabel');
+  var rect = clickedEl.getBoundingClientRect();
+
+  // Set label to LOADING
+  label.textContent = 'LOADING';
+
+  // Mark transition for sub-page to skip its loader
+  sessionStorage.setItem('fromIndex', '1');
+
+  // Trigger all components to exit screen
+  var mainBox = document.getElementById('mainBox');
+  mainBox.classList.add('exiting');
+
+  // Start from clicked element's screen position
+  overlay.style.display = 'block';
+  overlay.style.left = rect.left + 'px';
+  overlay.style.top = rect.top + 'px';
+  overlay.style.width = rect.width + 'px';
+  overlay.style.height = rect.height + 'px';
+  label.style.opacity = '0';
+
+  // Force reflow to register start position
+  overlay.getBoundingClientRect();
+
+  // Expand to fullscreen
+  overlay.style.left = '0';
+  overlay.style.top = '0';
+  overlay.style.width = '100vw';
+  overlay.style.height = '100vh';
+
+  // Fade in label after expansion begins
+  setTimeout(function() {
+    label.style.opacity = '1';
+  }, 200);
+
+  // After hold, slide overlay UP off screen
+  setTimeout(function() {
+    overlay.style.transition = 'top 0.45s cubic-bezier(0.55, 0, 1, 0.45)';
+    overlay.style.top = '-100vh';
+    label.style.opacity = '0';
+  }, 800);
+
+  // Navigate after slide-up completes
+  setTimeout(function() {
+    window.location.href = href;
+  }, 1250);
+}
+
+/* --- Loading Screen --- */
+(function initLoader() {
+  var bar = document.getElementById('loaderFill');
+  var pct = document.getElementById('loaderPct');
+  var scr  = document.getElementById('loader');
+  var stat = document.getElementById('loaderStatus');
+  var p = 0;
+  var t = setInterval(function() {
+    p += Math.random() * 8 + 2;
+    if (p >= 100) { p = 100; clearInterval(t); }
+    bar.style.width = p + '%';
+    pct.textContent = Math.floor(p) + '%';
+    if (p < 25)       stat.textContent = 'INITIALIZING / SENDING REQUEST';
+    else if (p < 50)  stat.textContent = 'INITIALIZING / IDENTIFY DATA';
+    else if (p < 75)  stat.textContent = 'INITIALIZING / LOAD IN';
+    else              stat.textContent = 'WELCOME';
+    if (p === 100) {
+      setTimeout(function() {
+        scr.classList.add('done');
+        // Wait for loader to fully fade (0.8s), then start Rhinelab
+        setTimeout(startRhineEntrance, 800);
+      }, 400);
+    }
+  }, 60);
+})();
+
+/* --- Rhinelab Phased Entrance --- */
+function startRhineEntrance() {
+  var mainBox = document.getElementById('mainBox');
+
+  // Phase 1 鈫?2: Core-box slides down along line to position
+  setTimeout(function() {
+    mainBox.classList.remove('unactive');
+  }, 200);
+
+  // Phase 2 鈫?3: All elements animate in
+  setTimeout(function() {
+    mainBox.classList.add('start-process');
+  }, 1500);
+}
+
+/* --- Update Year --- */
+(function updateYear() {
+  var year = new Date().getFullYear();
+  document.querySelectorAll('.info-text, .left-top-info .os, .loader-copy').forEach(function(el) {
+    el.textContent = el.textContent.split('2026').join(year);
+  });
+})();
+</script>
+
+</body>
+</html>
+
+
