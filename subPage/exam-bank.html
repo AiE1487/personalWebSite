@@ -79,9 +79,25 @@ body {
 .exam-mode .ans-area { display: none !important; }
 .exam-mode .q-card.correct { border-color: rgba(0,255,100,0.4) !important; background: rgba(0,255,100,0.04) !important; }
 .exam-mode .q-card.wrong { border-color: rgba(255,80,80,0.4) !important; background: rgba(255,80,80,0.04) !important; }
-/* review mode: show only wrong + fill cards */
+.exam-mode .q-card.wrong .exam-answer { display: block !important; }
+.exam-mode .q-card.wrong .exam-jiexi { display: block !important; }
+.exam-answer {
+  display: none !important;
+  margin-top: 0.6rem; padding: 0.4rem 0.8rem;
+  background: rgba(255,80,80,0.06); border-left: 2px solid rgba(255,80,80,0.6);
+  font-size: 0.82rem; color: #ddd; line-height: 1.5;
+}
+.exam-answer::before { content: '正确答案：'; color: rgba(255,80,80,0.9); font-weight: 600; }
+.exam-jiexi {
+  display: none !important;
+  margin-top: 0.4rem; padding: 0.5rem 0.8rem;
+  background: rgba(24,209,255,0.05); border-left: 2px solid #18d1ff;
+  font-size: 0.78rem; color: #aaa; line-height: 1.65;
+}
+.exam-jiexi::before { content: '解析：'; color: #18d1ff; font-weight: 600; }
+/* review mode: show only wrong (answered but incorrect) cards */
 .review-wrong .q-card.correct { display: none !important; }
-.review-wrong .q-card:not(.correct):not(.wrong) { } /* fill cards stay */
+.review-wrong .q-card:not(.correct):not(.wrong) { display: none !important; } /* hide unanswered */
 #exam-submit {
   display: none; width: 100%; max-width: 860px; margin: 0 auto 3rem; padding: 0 2rem;
 }
@@ -1002,9 +1018,14 @@ const choiceQuestions = [
     var cards = document.querySelectorAll('.q-card');
     var done = 0, left = 0;
     cards.forEach(function(card) {
-      if (card.style.display !== 'none' && card.getAttribute('data-type') !== 'fill') {
+      if (card.style.display !== 'none') {
         left++;
-        if (card.querySelector('input[type="radio"]:checked')) done++;
+        if (card.getAttribute('data-type') === 'fill') {
+          var inp = card.querySelector('.fill-inp');
+          if (inp && inp.value.trim() !== '') done++;
+        } else {
+          if (card.querySelector('input[type="radio"]:checked')) done++;
+        }
       }
     });
     document.getElementById('progDone').textContent = done;
@@ -1024,6 +1045,7 @@ const choiceQuestions = [
       document.querySelectorAll('.ans-content.show').forEach(function(a) { a.classList.remove('show'); });
       document.querySelectorAll('.ans-toggle').forEach(function(s) { s.textContent = '查看答案'; });
       document.querySelectorAll('.q-card').forEach(function(c) { c.classList.remove('correct', 'wrong'); });
+      document.querySelectorAll('.exam-answer, .exam-jiexi').forEach(function(el) { el.remove(); });
       document.getElementById('exam-score').style.display = 'none';
       document.getElementById('exam-score').innerHTML = '';
       document.querySelectorAll('input[type="radio"]').forEach(function(r) { r.checked = false; });
@@ -1036,8 +1058,9 @@ const choiceQuestions = [
       // show all cards
       document.querySelectorAll('.q-card').forEach(function(c) { c.style.display = ''; });
       document.querySelectorAll('.section-title').forEach(function(s) { s.style.display = ''; });
-      // add radio change listener
+      // add change + input listeners for progress
       document.addEventListener('change', updateProgress);
+      document.addEventListener('input', updateProgress);
       updateProgress();
     } else {
       document.body.classList.remove('exam-mode');
@@ -1046,9 +1069,11 @@ const choiceQuestions = [
       btn.style.color = '';
       btn.style.borderColor = '';
       document.querySelectorAll('.q-card').forEach(function(c) { c.classList.remove('correct', 'wrong'); });
+      document.querySelectorAll('.exam-answer, .exam-jiexi').forEach(function(el) { el.remove(); });
       document.getElementById('exam-score').style.display = 'none';
       document.getElementById('exam-score').innerHTML = '';
       document.removeEventListener('change', updateProgress);
+      document.removeEventListener('input', updateProgress);
       document.querySelectorAll('.q-card').forEach(function(c) { c.style.display = ''; });
       document.querySelectorAll('.section-title').forEach(function(s) { s.style.display = ''; });
       // reset stat chips
@@ -1059,34 +1084,78 @@ const choiceQuestions = [
     }
   };
 
+  function normalizeFill(s) {
+    return s.replace(/[（(][^)）]*[)）]/g, '').replace(/\s+/g, '').toLowerCase();
+  }
+  function matchFillAnswer(userInput, expected) {
+    var u = normalizeFill(userInput || '');
+    var e = normalizeFill(expected);
+    if (!u) return false;
+    if (u === e) return true;
+    // multi-part answer split by 、or ,
+    var parts = e.split(/[、,，]/);
+    if (parts.length > 1) {
+      return parts.every(function(p) { return u.indexOf(p.trim()) !== -1; });
+    }
+    // partial match: user typed substring of answer (e.g. UTP vs 非屏蔽双绞线（UTP）)
+    return u.indexOf(e) !== -1 || e.indexOf(u) !== -1;
+  }
+
   window.submitExam = function() {
-    var total = 0, correct = 0, fillCount = 0;
+    var total = 0, correct = 0, skipped = 0;
     var cards = document.querySelectorAll('.q-card');
     var visibleCards = [];
     cards.forEach(function(card) {
       if (card.style.display === 'none') return;
       var type = card.getAttribute('data-type');
       var answer = card.getAttribute('data-answer');
-      if (type === 'fill') { fillCount++; return; }
+      // clean old markings first
+      card.classList.remove('correct', 'wrong');
+      var oldA = card.querySelector('.exam-answer'); if (oldA) oldA.remove();
+      var oldJ = card.querySelector('.exam-jiexi'); if (oldJ) oldJ.remove();
+
+      if (type === 'fill') {
+        var inp = card.querySelector('.fill-inp');
+        var userVal = (inp && inp.value || '').trim();
+        if (!userVal) { skipped++; return; }
+        total++;
+        visibleCards.push(card);
+        if (matchFillAnswer(userVal, answer)) {
+          correct++;
+          card.classList.add('correct');
+        } else {
+          card.classList.add('wrong');
+          var ea = document.createElement('div'); ea.className = 'exam-answer'; ea.textContent = answer; card.appendChild(ea);
+          var je = card.querySelector('.ans-jiexi');
+          if (je) { var ej = document.createElement('div'); ej.className = 'exam-jiexi'; ej.textContent = je.textContent; card.appendChild(ej); }
+        }
+        return;
+      }
+      // choice / tf
+      var checked = card.querySelector('input[type="radio"]:checked');
+      if (!checked) { skipped++; return; }
       total++;
       visibleCards.push(card);
-      var checked = card.querySelector('input[type="radio"]:checked');
-      if (checked && checked.value === answer) {
+      if (checked.value === answer || checked.value.charAt(0) === answer) {
         correct++;
         card.classList.add('correct');
       } else {
         card.classList.add('wrong');
+        var ea2 = document.createElement('div'); ea2.className = 'exam-answer'; ea2.textContent = answer; card.appendChild(ea2);
+        var je2 = card.querySelector('.ans-jiexi');
+        if (je2) { var ej2 = document.createElement('div'); ej2.className = 'exam-jiexi'; ej2.textContent = je2.textContent; card.appendChild(ej2); }
       }
     });
-    // show score (excludes fills)
+    // show score (answered only)
     var scoreHtml = '得分: ' + correct + ' / ' + total;
     if (total > 0) scoreHtml += ' (' + Math.round(correct / total * 100) + '%)';
-    if (fillCount > 0) scoreHtml += '（不含填空题 ' + fillCount + ' 道）';
-    scoreHtml += ' <button class="toolbar-btn" onclick="showReview()" style="font-size:0.65rem;padding:0.2rem 0.7rem;">只看错题和填空题</button>';
+    if (skipped > 0) scoreHtml += '（未作答 ' + skipped + ' 道不计分）';
+    scoreHtml += ' <button class="toolbar-btn" onclick="showReview()" style="font-size:0.65rem;padding:0.2rem 0.7rem;">只看错题</button>';
     var scoreEl = document.getElementById('exam-score');
     scoreEl.innerHTML = scoreHtml;
     scoreEl.style.display = 'block';
     document.removeEventListener('change', updateProgress);
+    document.removeEventListener('input', updateProgress);
     window.scrollTo({ top: document.getElementById('exam-submit').offsetTop - 100, behavior: 'smooth' });
   };
 
