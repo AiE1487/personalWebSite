@@ -74,10 +74,14 @@ body {
 .toolbar-btn:hover { color: #18d1ff; border-color: rgba(24,209,255,0.4); background: rgba(24,209,255,0.05); }
 
 /* exam mode */
-.exam-mode .stat-chip { opacity: 0.4; pointer-events: none; }
+.exam-mode .stat-chip { opacity: 0.4; pointer-events: auto; }
+.exam-mode .stat-chip.active { opacity: 1; }
 .exam-mode .ans-area { display: none !important; }
 .exam-mode .q-card.correct { border-color: rgba(0,255,100,0.4) !important; background: rgba(0,255,100,0.04) !important; }
 .exam-mode .q-card.wrong { border-color: rgba(255,80,80,0.4) !important; background: rgba(255,80,80,0.04) !important; }
+/* review mode: show only wrong + fill cards */
+.review-wrong .q-card.correct { display: none !important; }
+.review-wrong .q-card:not(.correct):not(.wrong) { } /* fill cards stay */
 #exam-submit {
   display: none; width: 100%; max-width: 860px; margin: 0 auto 3rem; padding: 0 2rem;
 }
@@ -89,8 +93,27 @@ body {
 #exam-submit button:hover { background: #18d1ff; color: #141414; }
 .exam-mode #exam-submit { display: block; }
 #exam-score { text-align: center; font-size: 1rem; color: #18d1ff; margin-top: 1rem; display: none; }
+#exam-score button { margin-top: 0.6rem; margin-left: 0.5rem; }
 .stat-chip { cursor: pointer; user-select: none; }
 .stat-chip.active { background: rgba(24,209,255,0.2); border-color: #18d1ff; color: #fff; }
+
+/* exam progress sidebar */
+#exam-progress {
+  position: fixed; left: 0; top: 50%; transform: translateY(-50%);
+  z-index: 900; display: none; flex-direction: column; align-items: center; gap: 0.4rem;
+  padding: 0.8rem 0.5rem; background: #1a1c1e; border: 1px solid rgba(255,255,255,0.06);
+  border-left: none;
+}
+.exam-mode #exam-progress { display: flex; }
+#exam-progress .prog-label { font-size: 0.45rem; color: #666; letter-spacing: 0.1em; writing-mode: vertical-rl; }
+#exam-progress .prog-done { font-size: 0.8rem; font-weight: 700; color: #18d1ff; }
+#exam-progress .prog-divider { width: 12px; height: 1px; background: rgba(255,255,255,0.1); }
+#exam-progress .prog-left { font-size: 0.7rem; color: #888; }
+@media (max-width: 768px) {
+  #exam-progress { left: 2px; padding: 0.4rem 0.3rem; gap: 0.2rem; }
+  #exam-progress .prog-done { font-size: 0.65rem; }
+  #exam-progress .prog-left { font-size: 0.55rem; }
+}
 
 /* ========== MAIN ========== */
 #main { max-width: 860px; margin: 0 auto; padding: 100px 2rem 4rem; }
@@ -106,7 +129,7 @@ body {
   border-bottom: 2px solid #18d1ff; display: flex; align-items: baseline; gap: 0.8rem;
 }
 .section-title h2 { font-size: 1.15rem; font-weight: 700; color: #eee; letter-spacing: 0.06em; }
-.section-title .count { font-size: 0.72rem; color: #18d1ff; background: rgba(24,209,255,0.08); padding: 0.2rem 0.7rem; border-radius: 20px; border: 1px solid rgba(24,209,255,0.15); }
+.section-title .count { font-size: 0.72rem; color: #18d1ff; background: rgba(24,209,255,0.08); padding: 0.2rem 0.7rem; border: 1px solid rgba(24,209,255,0.15); }
 
 /* ========== QUESTION CARD ========== */
 .q-card {
@@ -161,12 +184,20 @@ body {
 /* Back to top */
 .back-top {
   position: fixed; bottom: 1.5rem; right: 1.5rem; width: 36px; height: 36px;
-  border-radius: 50%; background: #1a1c1e; color: #18d1ff;
+  background: #1a1c1e; color: #18d1ff;
   border: 1px solid rgba(24,209,255,0.2); cursor: pointer; font-size: 1rem;
   display: flex; align-items: center; justify-content: center; z-index: 200;
   transition: all 0.3s ease;
 }
 .back-top:hover { background: #18d1ff; color: #141414; }
+.back-bottom {
+  position: fixed; bottom: 4.2rem; right: 1.5rem; width: 36px; height: 36px;
+  background: #1a1c1e; color: #18d1ff;
+  border: 1px solid rgba(24,209,255,0.2); cursor: pointer; font-size: 1rem;
+  display: flex; align-items: center; justify-content: center; z-index: 200;
+  transition: all 0.3s ease;
+}
+.back-bottom:hover { background: #18d1ff; color: #141414; }
 
 /* ========== FOOTER ========== */
 #footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 1.5rem 2rem; max-width: 860px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; font-size: 0.55rem; letter-spacing: 0.08em; color: #555; }
@@ -203,6 +234,13 @@ body {
   <div class="loader-copy">&copy; 2026 AIRES PRIVATE</div>
 </div>
 
+<div id="exam-progress">
+  <span class="prog-label">进度</span>
+  <span class="prog-done" id="progDone">0</span>
+  <span class="prog-divider"></span>
+  <span class="prog-left" id="progLeft">0</span>
+</div>
+
 <div id="page-content">
 
 <nav id="nav">
@@ -237,6 +275,7 @@ body {
   </div>
 </footer>
 
+<button class="back-bottom" onclick="window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})" title="前往底部">↓</button>
 <button class="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="回到顶部">↑</button>
 
 <script>
@@ -841,7 +880,7 @@ const choiceQuestions = [
   };
 
   window.filterQuestions = function(type) {
-    if (document.body.classList.contains('exam-mode')) return;
+    document.body.setAttribute('data-exam-filter', type);
     var chips = document.querySelectorAll('.stat-chip');
     chips.forEach(function(c) { c.classList.remove('active'); });
     var activeChip = document.querySelector('[data-filter="' + type + '"]');
@@ -858,6 +897,21 @@ const choiceQuestions = [
         c.style.display = (c.getAttribute('data-type') === type) ? '' : 'none';
       });
     }
+    if (document.body.classList.contains('exam-mode')) updateProgress();
+  };
+
+  window.updateProgress = function() {
+    var filter = document.body.getAttribute('data-exam-filter') || 'all';
+    var cards = document.querySelectorAll('.q-card');
+    var done = 0, left = 0;
+    cards.forEach(function(card) {
+      if (card.style.display !== 'none' && card.getAttribute('data-type') !== 'fill') {
+        left++;
+        if (card.querySelector('input[type="radio"]:checked')) done++;
+      }
+    });
+    document.getElementById('progDone').textContent = done;
+    document.getElementById('progLeft').textContent = left;
   };
 
   var examMode = false;
@@ -866,62 +920,85 @@ const choiceQuestions = [
     var btn = document.getElementById('exam-btn');
     if (examMode) {
       document.body.classList.add('exam-mode');
+      document.body.setAttribute('data-exam-filter', 'all');
       btn.textContent = '退出考试';
       btn.style.color = '#18d1ff';
       btn.style.borderColor = '#18d1ff';
-      // collapse all answers
       document.querySelectorAll('.ans-content.show').forEach(function(a) { a.classList.remove('show'); });
       document.querySelectorAll('.ans-toggle').forEach(function(s) { s.textContent = '查看答案'; });
-      // reset filter
-      filterQuestions('all');
-      // clear previous grading
       document.querySelectorAll('.q-card').forEach(function(c) { c.classList.remove('correct', 'wrong'); });
       document.getElementById('exam-score').style.display = 'none';
-      document.getElementById('exam-score').textContent = '';
-      // clear radio selections
+      document.getElementById('exam-score').innerHTML = '';
       document.querySelectorAll('input[type="radio"]').forEach(function(r) { r.checked = false; });
+      document.body.classList.remove('review-wrong');
+      // activate "all" chip
+      var chips = document.querySelectorAll('.stat-chip');
+      chips.forEach(function(c) { c.classList.remove('active'); });
+      var allChip = document.querySelector('[data-filter="all"]');
+      if (allChip) allChip.classList.add('active');
+      // show all cards
+      document.querySelectorAll('.q-card').forEach(function(c) { c.style.display = ''; });
+      document.querySelectorAll('.section-title').forEach(function(s) { s.style.display = ''; });
+      // add radio change listener
+      document.addEventListener('change', updateProgress);
+      updateProgress();
     } else {
       document.body.classList.remove('exam-mode');
+      document.body.classList.remove('review-wrong');
       btn.textContent = '考试模式';
       btn.style.color = '';
       btn.style.borderColor = '';
       document.querySelectorAll('.q-card').forEach(function(c) { c.classList.remove('correct', 'wrong'); });
       document.getElementById('exam-score').style.display = 'none';
-      document.getElementById('exam-score').textContent = '';
+      document.getElementById('exam-score').innerHTML = '';
+      document.removeEventListener('change', updateProgress);
+      document.querySelectorAll('.q-card').forEach(function(c) { c.style.display = ''; });
+      document.querySelectorAll('.section-title').forEach(function(s) { s.style.display = ''; });
+      // reset stat chips
+      var chips = document.querySelectorAll('.stat-chip');
+      chips.forEach(function(c) { c.classList.remove('active'); });
+      var allChip = document.querySelector('[data-filter="all"]');
+      if (allChip) allChip.classList.add('active');
     }
   };
 
   window.submitExam = function() {
-    var total = 0, correct = 0;
+    var total = 0, correct = 0, fillCount = 0;
     var cards = document.querySelectorAll('.q-card');
+    var visibleCards = [];
     cards.forEach(function(card) {
+      if (card.style.display === 'none') return;
       var type = card.getAttribute('data-type');
       var answer = card.getAttribute('data-answer');
-      if (type === 'fill') return; // skip fill-in-the-blank
+      if (type === 'fill') { fillCount++; return; }
       total++;
-      if (type === 'choice') {
-        // Find checked radio in this card
-        var checked = card.querySelector('input[type="radio"]:checked');
-        if (checked && checked.value === answer) {
-          correct++;
-          card.classList.add('correct');
-        } else {
-          card.classList.add('wrong');
-        }
-      } else if (type === 'tf') {
-        var checked = card.querySelector('input[type="radio"]:checked');
-        if (checked && checked.value === answer) {
-          correct++;
-          card.classList.add('correct');
-        } else {
-          card.classList.add('wrong');
-        }
+      visibleCards.push(card);
+      var checked = card.querySelector('input[type="radio"]:checked');
+      if (checked && checked.value === answer) {
+        correct++;
+        card.classList.add('correct');
+      } else {
+        card.classList.add('wrong');
       }
     });
+    // show score (excludes fills)
+    var scoreHtml = '得分: ' + correct + ' / ' + total;
+    if (total > 0) scoreHtml += ' (' + Math.round(correct / total * 100) + '%)';
+    if (fillCount > 0) scoreHtml += '（不含填空题 ' + fillCount + ' 道）';
+    scoreHtml += ' <button class="toolbar-btn" onclick="showReview()" style="font-size:0.65rem;padding:0.2rem 0.7rem;">只看错题和填空题</button>';
     var scoreEl = document.getElementById('exam-score');
-    scoreEl.textContent = '得分: ' + correct + ' / ' + total + ' (' + (total > 0 ? Math.round(correct / total * 100) : 0) + '%)';
+    scoreEl.innerHTML = scoreHtml;
     scoreEl.style.display = 'block';
+    document.removeEventListener('change', updateProgress);
     window.scrollTo({ top: document.getElementById('exam-submit').offsetTop - 100, behavior: 'smooth' });
+  };
+
+  window.showReview = function() {
+    document.body.classList.add('review-wrong');
+    // show all cards first, then hide correct ones
+    document.querySelectorAll('.q-card').forEach(function(c) { c.style.display = ''; });
+    document.querySelectorAll('.section-title').forEach(function(s) { s.style.display = ''; });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   renderQuestions();
